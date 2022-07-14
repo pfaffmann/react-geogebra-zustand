@@ -1,22 +1,28 @@
 import * as React from 'react';
 import { ReactGeoGebraParameters } from '../types';
-import { useGeoGebraStore } from '../zustand/geogebraStore';
-import { useInjectorStore } from '../zustand/injectorStore';
+import { useStore } from '../zustand/store';
 import { nanoid } from 'nanoid';
 import { registerListeners } from '../util';
+import { Applet, GeoGebraElement } from '../types/store';
 
 const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
-  const isScriptLoaded = useInjectorStore(state => state.isScriptLoaded);
-  const applets = useGeoGebraStore(state => state.applets);
-  const addApplet = useGeoGebraStore(state => state.addApplet);
+  const isScriptLoaded = useStore(state => state.isScriptLoaded);
+  const applets = useStore(state => state.applets);
+  const addApplet = useStore(state => state.addApplet);
+  const { addElement, updateElement, removeElement } = useStore();
   let { id, appletOnLoad, width, height, ...rest } = props;
   const [memorizedId] = React.useState(`${id}-${nanoid(8)}`);
   id = memorizedId;
   const params = {
     id,
     appletOnLoad: (api: any) => {
-      addApplet({ id, api });
-      registerListeners(api);
+      const applet: Applet = {
+        id: memorizedId,
+        api,
+        elements: new Map<string, GeoGebraElement>(),
+      };
+      addApplet(applet);
+      registerListeners(applet, { addElement, updateElement, removeElement });
       if (appletOnLoad) appletOnLoad(api);
     },
     width,
@@ -25,10 +31,12 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
   };
 
   React.useEffect(() => {
-    const applet = applets.filter(applet => applet.id === memorizedId)[0];
+    if (!width || !height) return;
+    const applet = applets.get(memorizedId);
     if (typeof applet === 'undefined') return;
+    console.log(applets);
+
     applet.api.setSize(width, height);
-    applet.api.recalculateEnvironments();
   }, [width, height]);
 
   React.useEffect(() => {

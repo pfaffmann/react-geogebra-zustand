@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { GGBApplet } from '../types';
-import { useInjectorStore } from '../zustand/injectorStore';
+import { useStore } from '../zustand/store';
 
 export interface InjectorProps {
   scriptSource?: string;
@@ -18,7 +18,7 @@ export const GeoGebraScriptInjector: React.FC<InjectorProps> = ({
   children,
 }) => {
   let deployPromise: Promise<GGBApplet> | undefined = undefined;
-  const setScriptLoaded = useInjectorStore(state => state.setScriptLoaded);
+  const setScriptLoaded = useStore(state => state.setScriptLoaded);
   const deployScriptInjector = <T,>(
     res: (geoGebra: T) => void,
     rej: (error: ErrorEvent) => void

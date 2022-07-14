@@ -1,18 +1,25 @@
-import { useGeoGebraStore } from '../zustand/geogebraStore';
-
+import { GeoGebraStore, StoreMethods, useStore } from '../zustand/store';
+import { Applet, GeoGebraElement } from '../types/store';
 export const evalXML = () => {};
 
-export const registerListeners = (api: any) => {
+export const registerListeners = (app: Applet, storeMethods: StoreMethods) => {
+  const { id, api } = app;
+  const { addElement, updateElement, removeElement } = storeMethods;
   api.registerUpdateListener((label: string) => {
-    console.log(label + ' is updated');
+    const element: GeoGebraElement = { label, xml: api.getXML(label) };
+    updateElement({ id, element });
+    //console.log(label + ' is updated');
   });
   api.registerRemoveListener((label: string) => {
-    console.log(label + ' is removed');
+    removeElement({ id, label });
+    //console.log(label + ' is removed');
   });
   api.registerAddListener((label: string) => {
-    console.log(label + ' is added');
-    console.log(api.getXML(label));
-    console.log(api.getCommandString(label));
+    const element: GeoGebraElement = { label, xml: api.getXML(label) };
+    addElement({ id, element });
+    //console.log(label + ' is added');
+    //console.log(api.getXML(label));
+    //console.log(api.getCommandString(label));
   });
   api.registerClientListener((event: any) => {
     const [eventName, eventInfo1, eventInfo2] = event;
@@ -76,7 +83,7 @@ export const registerListeners = (api: any) => {
 
       case 'viewChanged2D':
         console.log('viewChanged2D', event);
-        var props = JSON.parse(api.getViewProperties());
+        var props = JSON.parse(String(api.getViewProperties()));
         var xMin = props.xMin;
         var yMin = props.yMin;
         var xMax = props.xMin + props.width * props.invXscale;
