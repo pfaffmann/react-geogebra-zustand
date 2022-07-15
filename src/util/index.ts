@@ -42,7 +42,7 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
       var label = eventInfo1;
       console.log(label + ' has changed style');
 
-      var xml = api.getXML(label);
+      const xml = api.getXML(label);
       console.log(xml);
 
       //evalXML(xapi2, xml);
@@ -95,9 +95,22 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
       console.log('****** POLYGON ' + eventName + ' FINISHED ******');
       break;
 
+    case 'viewPropertiesChanged':
+      console.log('viewPropertiesChanged', event);
+      break;
+
     case 'viewChanged2D':
+      const props = JSON.parse(api.getViewProperties());
+      //console.log(app);
+
+      const xmlP = api.getPerspectiveXML();
+      console.log(xmlP);
+
+      if (!event.viewNo || !props || true) break;
       console.log('viewChanged2D', event);
-      const props = JSON.parse(String(api.getViewProperties(event.viewNo)));
+      console.log(props);
+      //console.log(props1);
+      //const props = JSON.parse(api.getViewProperties(event.viewNo));
       const xMax = props.xMin + props.width * props.invXscale;
       const yMax = props.yMin + props.height * props.invYscale;
 
@@ -119,7 +132,7 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
         top: props.top,
       };
       updateView2D({ id, view });
-      console.log(view);
+      //console.log(view);
       //xapi2.setCoordSystem(xMin, xMax, yMin, yMax);
       break;
 
