@@ -3,13 +3,19 @@ import { ReactGeoGebraParameters } from '../types';
 import { useStore } from '../zustand/store';
 import { nanoid } from 'nanoid';
 import { registerListeners } from '../util';
-import { Applet, GeoGebraElement } from '../types/store';
+import {
+  Applet,
+  GeoGebraElement,
+  GeoGebraView2D,
+  StoreMethods,
+} from '../types/store';
+import { throttle } from 'throttle-debounce';
 
 const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
   const isScriptLoaded = useStore(state => state.isScriptLoaded);
   const applets = useStore(state => state.applets);
   const addApplet = useStore(state => state.addApplet);
-  const { addElement, updateElement, removeElement } = useStore();
+  const { addElement, updateElement, removeElement, updateView2D } = useStore();
   let { id, appletOnLoad, width, height, ...rest } = props;
   const [memorizedId] = React.useState(`${id}-${nanoid(8)}`);
   id = memorizedId;
@@ -20,9 +26,21 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
         id: memorizedId,
         api,
         elements: new Map<string, GeoGebraElement>(),
+        views2D: new Map<number, GeoGebraView2D>(),
       };
       addApplet(applet);
-      registerListeners(applet, { addElement, updateElement, removeElement });
+      registerListeners(applet, {
+        addElement,
+        updateElement: throttle(
+          250,
+          updateElement
+        ) as StoreMethods['updateElement'],
+        removeElement,
+        updateView2D: throttle(
+          250,
+          updateView2D
+        ) as StoreMethods['updateView2D'],
+      });
       if (appletOnLoad) appletOnLoad(api);
     },
     width,

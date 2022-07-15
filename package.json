@@ -61,6 +61,7 @@
   "dependencies": {
     "immer": "^9.0.15",
     "nanoid": "^4.0.0",
+    "throttle-debounce": "^5.0.0",
     "zustand": "^4.0.0-rc.1"
   }
 }
