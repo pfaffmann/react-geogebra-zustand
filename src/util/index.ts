@@ -100,17 +100,9 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
       break;
 
     case 'viewChanged2D':
-      const props = JSON.parse(api.getViewProperties());
-      //console.log(app);
-
-      const xmlP = api.getPerspectiveXML();
-      console.log(xmlP);
-
-      if (!event.viewNo || !props || true) break;
+      const props = JSON.parse(api.getViewProperties(parseInt(event.viewNo)));
       console.log('viewChanged2D', event);
       console.log(props);
-      //console.log(props1);
-      //const props = JSON.parse(api.getViewProperties(event.viewNo));
       const xMax = props.xMin + props.width * props.invXscale;
       const yMax = props.yMin + props.height * props.invYscale;
 
