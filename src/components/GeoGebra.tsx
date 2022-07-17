@@ -15,7 +15,14 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
   const isScriptLoaded = useStore(state => state.isScriptLoaded);
   const applets = useStore(state => state.applets);
   const addApplet = useStore(state => state.addApplet);
-  const { addElement, updateElement, removeElement, updateView2D } = useStore();
+  const {
+    addElement,
+    updateElement,
+    removeElement,
+    updateView2D,
+    updateMouse,
+    updateMode,
+  } = useStore();
   let { id, appletOnLoad, width, height, ...rest } = props;
   const [memorizedId] = React.useState(`${id}-${nanoid(8)}`);
   id = memorizedId;
@@ -25,8 +32,10 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
       const applet: Applet = {
         id: memorizedId,
         api,
-        elements: new Map<string, GeoGebraElement>(),
-        views2D: new Map<number, GeoGebraView2D>(),
+        elements: {},
+        views2D: {},
+        mouse: { viewNo: 0, viewName: '', x: 0, y: 0, hits: [] },
+        mode: { number: -1, name: '' },
       };
       addApplet(applet);
       registerListeners(applet, {
@@ -40,6 +49,8 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
           250,
           updateView2D
         ) as StoreMethods['updateView2D'],
+        updateMouse,
+        updateMode,
       });
       if (appletOnLoad) appletOnLoad(api);
     },
@@ -50,7 +61,7 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
 
   React.useEffect(() => {
     if (!width || !height) return;
-    const applet = applets.get(memorizedId);
+    const applet = applets[memorizedId];
     if (typeof applet === 'undefined') return;
     console.log(applets);
 

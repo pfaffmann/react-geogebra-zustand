@@ -15,26 +15,34 @@ const store = set => ({
     set(state => {
       state.isScriptLoaded = isLoaded;
     }),
-  applets: new Map<string, Applet>(),
+  applets: {},
   addApplet: (applet: Applet) =>
     set(state => {
-      (state.applets as Applets).set(applet.id, applet);
+      state.applets[applet.id] = applet;
     }),
   addElement: ({ id, element }): StoreMethods['addElement'] =>
     set(state => {
-      (state.applets as Applets).get(id)?.elements.set(element.label, element);
+      state.applets[id].elements[element.label] = element;
     }),
   updateElement: ({ id, element }): StoreMethods['updateElement'] =>
     set(state => {
-      (state.applets as Applets).get(id)?.elements.set(element.label, element);
+      state.applets[id].elements[element.label] = element;
     }),
   removeElement: ({ id, label }): StoreMethods['removeElement'] =>
     set(state => {
-      (state.applets as Applets).get(id)?.elements.delete(label);
+      delete state.applets[id].elements[label];
     }),
   updateView2D: ({ id, view }): StoreMethods['updateView2D'] =>
     set(state => {
-      (state.applets as Applets).get(id)?.views2D.set(view.viewNo, view);
+      state.applets[id].views2D[view.viewNo] = view;
+    }),
+  updateMouse: ({ id, mouse }): StoreMethods['updateMouse'] =>
+    set(state => {
+      state.applets[id].mouse = mouse;
+    }),
+  updateMode: ({ id, mode }): StoreMethods['updateMode'] =>
+    set(state => {
+      state.applets[id].mode = mode;
     }),
 });
 

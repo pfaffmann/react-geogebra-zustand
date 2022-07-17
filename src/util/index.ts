@@ -1,5 +1,7 @@
-import { GeoGebraView2D, StoreMethods } from '../types/store';
+import { GeoGebraMouse, GeoGebraView2D, StoreMethods } from '../types/store';
 import { Applet, GeoGebraElement } from '../types/store';
+import { modeMap } from '../constants/mode';
+import { viewNamesMap, viewNoToViewXMLNo } from '../constants/view';
 import { throttle } from 'throttle-debounce';
 
 export const evalXML = () => {};
@@ -35,21 +37,28 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
   event: any
 ) => {
   const { id, api } = app;
-  const { updateView2D } = storeMethods;
+  const { updateView2D, updateMouse, updateMode, updateElement } = storeMethods;
   const [eventName, eventInfo1, eventInfo2] = event;
   switch (eventName) {
     case 'updateStyle':
-      var label = eventInfo1;
-      console.log(label + ' has changed style');
+      const element: GeoGebraElement = {
+        label: eventInfo1,
+        xml: api.getXML(eventInfo1),
+      };
+      console.log(element.label + ' has changed style');
 
-      const xml = api.getXML(label);
-      console.log(xml);
+      updateElement({ id, element });
 
       //evalXML(xapi2, xml);
       break;
 
     case 'setMode':
-      console.log('setMode(' + eventInfo2 + ')');
+      const mode = {
+        number: eventInfo2,
+        name: modeMap.get(parseInt(eventInfo2)) || '',
+      };
+      updateMode({ id, mode });
+      console.log('setMode(' + mode.number + ') = ' + mode.name);
       //xapi2.setMode(eventInfo2);
       break;
 
@@ -68,14 +77,10 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
 
     case 'mouseDown':
       console.log('Mouse down');
-      var hits = '';
-      for (var i = 0; i < event.hits.length; i++) {
-        hits += event.hits[i];
-        hits += ' ';
-      }
-      if (!hits) {
-        hits = '(none)';
-      }
+      var hits =
+        (event.hits as Array<string>).length > 0
+          ? (event.hits as Array<string>).join(' ')
+          : '(none)';
       console.log(
         eventName +
           ' in view ' +
@@ -87,6 +92,15 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
           ') hitting objects: ' +
           hits
       );
+      const mouse: GeoGebraMouse = {
+        viewNo: event.viewNo,
+        viewName:
+          viewNamesMap.get(viewNoToViewXMLNo(parseInt(event.viewNo))) || '',
+        x: event.x,
+        y: event.y,
+        hits: event.hits,
+      };
+      updateMouse({ id, mouse });
       break;
     case 'addPolygon':
       console.log('****** POLYGON START ******');
@@ -100,29 +114,32 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
       break;
 
     case 'viewChanged2D':
-      const props = JSON.parse(api.getViewProperties(parseInt(event.viewNo)));
       console.log('viewChanged2D', event);
-      console.log(props);
-      const xMax = props.xMin + props.width * props.invXscale;
-      const yMax = props.yMin + props.height * props.invYscale;
-
       const view: GeoGebraView2D = {
         viewNo: event.viewNo,
+        viewName:
+          viewNamesMap.get(viewNoToViewXMLNo(parseInt(event.viewNo))) || '',
         scale: event.scale,
         xZero: event.xZero,
         yZero: event.yZero,
         yscale: event.yscale,
-        invXscale: props.invXscale,
-        invYscale: 1,
-        xMin: props.xMin,
-        yMin: props.yMin,
-        xMax,
-        yMax,
-        width: props.width,
-        height: props.height,
-        left: props.left,
-        top: props.top,
       };
+      if (parseInt(event.viewNo) <= 1) {
+        const props = JSON.parse(api.getViewProperties(event.viewNo));
+        const xMax = props.xMin + props.width * props.invXscale;
+        const yMax = props.yMin + props.height * props.invYscale;
+
+        view.invXscale = props.invXscale;
+        view.invYscale = props.invYscale;
+        view.xMin = props.xMin;
+        view.yMin = props.yMin;
+        view.xMax = xMax;
+        view.yMax = yMax;
+        view.width = props.width;
+        view.height = props.height;
+        view.left = props.left;
+        view.top = props.top;
+      }
       updateView2D({ id, view });
       //console.log(view);
       //xapi2.setCoordSystem(xMin, xMax, yMin, yMax);
