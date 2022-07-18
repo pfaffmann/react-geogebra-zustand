@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>graphic 2 problems</title>
+    <script src="https://www.geogebra.org/apps/deployggb.js"></script>
+  </head>
+  <body>
+    <p>Open the Graphic 2 window to see the lagging</p>
+    <div id="ggb-element"></div>
+  </body>
+  <script>
+    var api;
+    var params = {
+      appName: 'classic',
+      width: 800,
+      height: 600,
+      showToolBar: true,
+      showAlgebraInput: true,
+      showMenuBar: true,
+      appletOnLoad: onAppletLoad,
+    };
+    var applet = new GGBApplet(params, true);
+    window.addEventListener('load', function () {
+      applet.inject('ggb-element');
+    });
+
+    function onAppletLoad(API) {
+      api = API;
+      api.registerClientListener(clientListener);
+    }
+
+    function clientListener(event) {
+      const props = JSON.parse(window.ggbApplet.getViewProperties(2));
+      console.log('viewChanged2D', event);
+      console.log(props);
+    }
+  </script>
+</html>
