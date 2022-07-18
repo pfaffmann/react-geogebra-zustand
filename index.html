@@ -33,7 +33,7 @@
     }
 
     function clientListener(event) {
-      const props = JSON.parse(window.ggbApplet.getViewProperties(2));
+      const props = JSON.parse(api.getViewProperties(2));
       console.log('viewChanged2D', event);
       console.log(props);
     }
