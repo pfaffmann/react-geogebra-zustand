@@ -8,7 +8,10 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
-    "react-app-polyfill": "^1.0.0"
+    "@loadable/component": "^5.15.2",
+    "react-app-polyfill": "^1.0.0",
+    "react-json-view": "^1.21.3",
+    "react-json-view-compare": "^2.0.1"
   },
   "alias": {
     "react": "../node_modules/react",
