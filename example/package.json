@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "start": "parcel index.html",
-    "build": "parcel build index.html"
+    "build": "parcel build index.html",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@loadable/component": "^5.15.2",
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@types/react": "^16.9.11",
     "@types/react-dom": "^16.8.4",
+    "gh-pages": "^4.0.0",
     "parcel": "^1.12.3",
     "typescript": "^3.4.5"
   },
