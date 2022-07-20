@@ -1,4 +1,4 @@
-import 'react-app-polyfill/ie11';
+//import 'react-app-polyfill/ie11';
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { GeoGebraScriptInjector, GeoGebra, useStore } from '../.';
