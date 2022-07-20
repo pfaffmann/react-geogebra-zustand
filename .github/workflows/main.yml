@@ -25,6 +25,10 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: Install example
+        run: yarn install
+        working-directory: ./example
+
       - name: Build example
         run: yarn build
         working-directory: ./example
