@@ -27,8 +27,8 @@ jobs:
 
       - name: Build example
         run: yarn build
-        working-directory: /example
+        working-directory: ./example
 
       - name: Deploy example
         run: yarn deploy
-        working-directory: /example
+        working-directory: ./example
