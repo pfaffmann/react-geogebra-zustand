@@ -24,17 +24,3 @@ jobs:
 
       - name: Build
         run: yarn build
-
-      - name: Install example
-        run: yarn install
-        working-directory: ./example
-
-      - name: Build example
-        run: yarn build
-        working-directory: ./example
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./example/dist

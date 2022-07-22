@@ -1,24 +1,8 @@
-import 'react-app-polyfill/ie11';
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
-import { GeoGebraScriptInjector, GeoGebra, useStore } from '../.';
-import { ReactJson } from './ReactJson';
-
-const App = () => {
-  const [width, setWidth] = React.useState(800);
-  const [height, setHeight] = React.useState(400);
-
-  return (
-    <div>
-      <GeoGebraScriptInjector />
-      <GeoGebra id="app1" width={width} height={height}></GeoGebra>
-      <ReactJson />
-      {/*<GeoGebra id="app2" />
-       <button onClick={() => setWidth(width + 10)}>Change Props</button>
-      <button onClick={() => setHeight(height + 10)}>Change Props</button> */}
-    </div>
-  );
-};
+import 'react-app-polyfill/ie11';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { App } from './src/App';
 
 const container = document.getElementById('root');
 const root = createRoot(container!); // createRoot(container!) if you use TypeScript
