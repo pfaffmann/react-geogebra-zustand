@@ -3,13 +3,19 @@ import { devtools } from 'zustand/middleware';
 import { Applet, GeoGebraStore, StoreMethods } from '../types/store';
 import { immer } from './immer';
 
-const store = set => ({
+const store = (set, get) => ({
   isScriptLoaded: false,
   setScriptLoaded: (isLoaded: boolean) =>
     set(state => {
       state.isScriptLoaded = isLoaded;
     }),
   applets: {},
+  getApplet: (id: string) =>
+    Object.fromEntries(
+      Object.entries(get().applets[id]).filter(
+        ([key, value]) => !['api'].includes(key)
+      )
+    ),
   addApplet: (applet: Applet) =>
     set(state => {
       state.applets[applet.id] = applet;
@@ -30,6 +36,7 @@ const store = set => ({
     set(state => {
       state.applets[id].elements[newLabel] =
         state.applets[id].elements[oldLabel];
+      delete state.applets[id].elements[oldLabel];
     }),
   updateView2D: ({ id, view }): StoreMethods['updateView2D'] =>
     set(state => {

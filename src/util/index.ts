@@ -11,7 +11,7 @@ import { throttle } from 'throttle-debounce';
 
 export const geogebraElementFromApi = (label: string, api: Applet['api']) => {
   const objectType = api.getObjectType(label);
-  let coordinates;
+  let coordinates: XYZPosition | undefined = undefined;
   switch (objectType) {
     case 'point':
       coordinates = {
@@ -27,16 +27,14 @@ export const geogebraElementFromApi = (label: string, api: Applet['api']) => {
 
   const element: GeoGebraElement = {
     label,
-    coordinates: Object.keys(coordinates).includes('x')
-      ? coordinates
-      : undefined,
+    coordinates,
     value: api.getValue(label),
     color: api.getColor(label),
     isVisible: api.getVisible(label),
-    valueString: encodeURI(api.getValueString(label)),
-    definitionString: encodeURI(api.getDefinitionString(label)),
-    commandString: encodeURI(api.getCommandString(label)),
-    LaTeXString: encodeURI(api.getLaTeXString(label)),
+    valueString: api.getValueString(label),
+    definitionString: api.getDefinitionString(label),
+    commandString: api.getCommandString(label),
+    LaTeXString: api.getLaTeXString(label),
     objectType,
     isExisting: api.exists(label),
     isDefined: api.isDefined(label),
@@ -94,7 +92,6 @@ const renameListener = (app: Applet, storeMethods: StoreMethods) => (
   console.log('old: ' + oldLabel + ' new: ' + newLabel);
 
   renameElement({ id, oldLabel, newLabel });
-  removeElement({ id, label: oldLabel });
 };
 
 const clientListener = (app: Applet, storeMethods: StoreMethods) => (

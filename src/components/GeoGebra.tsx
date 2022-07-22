@@ -3,12 +3,7 @@ import { ReactGeoGebraParameters } from '../types';
 import { useStore } from '../zustand/store';
 import { nanoid } from 'nanoid';
 import { registerListeners } from '../util';
-import {
-  Applet,
-  GeoGebraElement,
-  GeoGebraView2D,
-  StoreMethods,
-} from '../types/store';
+import { Applet, StoreMethods } from '../types/store';
 import { throttle } from 'throttle-debounce';
 
 const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
@@ -22,6 +17,7 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
     updateView2D,
     updateMouse,
     updateMode,
+    renameElement,
   } = useStore();
   let { id, appletOnLoad, width, height, ...rest } = props;
   const [memorizedId] = React.useState(`${id}-${nanoid(8)}`);
@@ -45,6 +41,7 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
           updateElement
         ) as StoreMethods['updateElement'],
         removeElement,
+        renameElement,
         updateView2D: throttle(
           250,
           updateView2D

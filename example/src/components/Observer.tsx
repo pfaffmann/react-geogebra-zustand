@@ -1,16 +1,27 @@
-import { Box, Flex, Heading, Stack, Text } from '@chakra-ui/react';
+import { Flex, Heading, Stack } from '@chakra-ui/react';
 import * as React from 'react';
-import { useStore } from '../../../.';
+import { Applet, isDeepSubset, useStore } from '../../../.';
 import { useTasksStore } from '../store';
 import { ObserverItem } from './ObserverItem';
 interface ObserverProps {}
 
 export const Observer: React.FC<ObserverProps> = ({}) => {
   const applets = useStore(state => state.applets);
+  const getApplet = useStore(state => state.getApplet);
   const tasks = useTasksStore(state => state.tasks);
+  const getTasks = useTasksStore(state => state.getTasks);
+  const updateTaskIsDone = useTasksStore(state => state.updateTaskIsDone);
+
   React.useEffect(() => {
-    //console.log(tasks);
-  }, [applets]);
+    const ids = Object.keys(applets);
+    if (ids.length < 1) return;
+    getTasks().map(task => {
+      updateTaskIsDone(
+        task.id,
+        isDeepSubset(getApplet(ids[0]).elements, task.subset)
+      );
+    });
+  }, [applets, tasks]);
   return (
     <Flex
       bg="white"
@@ -24,8 +35,12 @@ export const Observer: React.FC<ObserverProps> = ({}) => {
         Observer
       </Heading>
       <Stack spacing={1}>
-        {Object.entries(tasks).map(([key, task]) => (
-          <ObserverItem text={task.text} isChecked={true} key={key} />
+        {getTasks().map(task => (
+          <ObserverItem
+            text={task.text}
+            isChecked={task.isDone}
+            key={task.id}
+          />
         ))}
       </Stack>
     </Flex>

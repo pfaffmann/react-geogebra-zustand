@@ -4,6 +4,7 @@ import { useStore as useGeoGebraStore } from './zustand/store';
 import { immer as immerMiddleware } from './zustand/immer';
 export * from './types/index';
 export * from './types/store';
+export * from './util/isDeepSubset';
 
 export const GeoGebraScriptInjector = Injector;
 export const GeoGebra = GGB;

@@ -50,5 +50,6 @@ export type GeoGebraStore = {
   isScriptLoaded: boolean;
   setScriptLoaded: (isLoaded: boolean) => void;
   applets: Applets;
+  getApplet: (id: string) => Partial<Applet>;
   addApplet: (applet: Applet) => void;
 } & StoreMethods;
