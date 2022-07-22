@@ -1,12 +1,6 @@
 import create from 'zustand';
 import { devtools } from 'zustand/middleware';
-import {
-  Applet,
-  Applets,
-  GeoGebraElement,
-  GeoGebraStore,
-  StoreMethods,
-} from '../types/store';
+import { Applet, GeoGebraStore, StoreMethods } from '../types/store';
 import { immer } from './immer';
 
 const store = set => ({
@@ -31,6 +25,11 @@ const store = set => ({
   removeElement: ({ id, label }): StoreMethods['removeElement'] =>
     set(state => {
       delete state.applets[id].elements[label];
+    }),
+  renameElement: ({ id, oldLabel, newLabel }): StoreMethods['renameElement'] =>
+    set(state => {
+      state.applets[id].elements[newLabel] =
+        state.applets[id].elements[oldLabel];
     }),
   updateView2D: ({ id, view }): StoreMethods['updateView2D'] =>
     set(state => {

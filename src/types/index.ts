@@ -1,5 +1,82 @@
 import * as React from 'react';
 
+export interface XYPosition {
+  x: number;
+  y: number;
+}
+export interface XYZPosition {
+  x: number;
+  y: number;
+  z: number;
+}
+
+type LabelStyle = 0 | 1 | 2 | 3;
+type PointSize = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
+export type GeoGebraElement = {
+  label: string;
+  xml: string;
+  coordinates?: XYPosition | XYZPosition;
+  value?: number;
+  listValue?: number;
+  color?: string;
+  isVisible?: boolean;
+  valueString?: string;
+  definitionString?: string;
+  commandString?: string;
+  LaTeXString?: string;
+  LaTeXBase64Definition?: string;
+  LaTeXBase64Value?: string;
+  objectType?: string;
+  isExisting?: boolean;
+  isDefined?: boolean;
+  objectNumber?: number;
+  CASobjectNumber?: number;
+  layer?: number;
+  lineStyle?: number;
+  lineThickness?: number;
+  pointStyle?: number;
+  pointSize?: PointSize;
+  filling?: number;
+  caption?: string;
+  labelStyle?: LabelStyle;
+  isLabelVisible?: boolean;
+  isIndependent?: boolean;
+  isMoveable?: boolean;
+};
+
+export type GeoGebraView2D = {
+  viewNo: number;
+  viewName: string;
+  scale: number;
+  xZero: number;
+  yZero: number;
+  yscale: number;
+  invXscale?: number;
+  invYscale?: number;
+  xMin?: number;
+  yMin?: number;
+  xMax?: number;
+  yMax?: number;
+  width?: number;
+  height?: number;
+  left?: number;
+  top?: number;
+};
+
+export type GeoGebraMode = {
+  number: number;
+  name: string;
+};
+
+export type GeoGebraMouse = {
+  viewNo: number; //1 Graphics 1; 2 Graphics 2; 512 Graphics 3D
+  viewName: string;
+  x: number;
+  y: number;
+  hits: Array<string>;
+};
+
 export type GGBApplet = any;
 
 export interface AppParameters {
@@ -114,7 +191,7 @@ export interface GeoGebraAPI {
   setLabelVisible: (objName: string, visible: boolean) => void;
   getLabelVisible: (objName: string) => boolean;
   setLabelStyle: (objName: string, style: number) => void;
-  getLabelStyle: (objName: string) => number;
+  getLabelStyle: (objName: string) => LabelStyle;
   setColor: (
     objName: string,
     red: number, //x
@@ -129,7 +206,7 @@ export interface GeoGebraAPI {
   setLineThickness: (objName: string, lineThickness: number) => void;
   getPointStyle: (objName: string) => number;
   setPointStyle: (objName: string, style: number) => void;
-  getPointSize: (objName: string) => number;
+  getPointSize: (objName: string) => PointSize;
   setPointSize: (objName: string, style: number) => void;
   getFilling: (objName: string) => number;
   setFilling: (objName: string, filling: number) => void;
@@ -190,7 +267,7 @@ export interface GeoGebraAPI {
   evalLaTeX: (input: string, mode: number) => void;
   evalMathML: (input: string) => boolean;
   getCommandString: (objName: string, localized?: boolean) => string;
-  getCaption: (objName: string, substituteVars: boolean) => string;
+  getCaption: (objName: string, substituteVars?: boolean) => string;
   setCaption: (objName: string, caption: string) => void;
   getPerspectiveXML: () => string;
   getXcoord: (objName: string) => number;
