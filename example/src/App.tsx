@@ -26,7 +26,20 @@ export const App = () => {
           ]}
           pb={'1rem'}
         >
-          <GeoGebra id="app1" width={600} height={400} />
+          <GeoGebra
+            id="app1"
+            width={600}
+            height={400}
+            material_id="vtcdcune"
+            useBrowserForJS={false}
+            showMenuBar={false}
+            showToolBar={false}
+            algebraInputPosition="none"
+            allowStyleBar={false}
+            showResetIcon
+            showZoomButtons={false}
+            showFullscreenButton={false}
+          />
           <ReactJson />
         </Flex>
 
