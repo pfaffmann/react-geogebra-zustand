@@ -7,7 +7,6 @@ import {
 } from '../types';
 import { modeMap } from '../constants/mode';
 import { viewNamesMap, viewNoToViewXMLNo } from '../constants/view';
-import { throttle } from 'throttle-debounce';
 
 export const geogebraElementFromApi = (label: string, api: Applet['api']) => {
   const objectType = api.getObjectType(label);
@@ -88,7 +87,7 @@ const renameListener = (app: Applet, storeMethods: StoreMethods) => (
   newLabel: string
 ) => {
   const { id } = app;
-  const { renameElement, removeElement } = storeMethods;
+  const { renameElement } = storeMethods;
   console.log('old: ' + oldLabel + ' new: ' + newLabel);
 
   renameElement({ id, oldLabel, newLabel });
@@ -283,7 +282,7 @@ export const unregisterListeners = (app: Applet) => {
 
 export const registerListeners = (app: Applet, storeMethods: StoreMethods) => {
   const { api } = app;
-  api.registerUpdateListener(throttle(500, updateListener(app, storeMethods)));
+  api.registerUpdateListener(updateListener(app, storeMethods));
   api.registerRemoveListener(removeListener(app, storeMethods));
   api.registerRenameListener(renameListener(app, storeMethods));
   api.registerAddListener(addListener(app, storeMethods));

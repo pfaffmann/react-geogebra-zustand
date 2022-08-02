@@ -18,8 +18,9 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
     updateMouse,
     updateMode,
     renameElement,
+    setLog,
   } = useStore();
-  let { id, appletOnLoad, width, height, ...rest } = props;
+  let { id, appletOnLoad, width, height, onLog, ...rest } = props;
   const [memorizedId] = React.useState(`${id}-${nanoid(8)}`);
   id = memorizedId;
   const params = {
@@ -30,24 +31,24 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
         api,
         elements: {},
         views2D: {},
+        log: onLog ? onLog : console.log,
         mouse: { viewNo: 0, viewName: '', x: 0, y: 0, hits: [] },
         mode: { number: -1, name: '' },
       };
+
       addApplet(applet);
       registerListeners(applet, {
         addElement,
-        updateElement: throttle(
-          250,
-          updateElement
-        ) as StoreMethods['updateElement'],
+        updateElement,
         removeElement,
         renameElement,
         updateView2D: throttle(
-          250,
+          50,
           updateView2D
         ) as StoreMethods['updateView2D'],
         updateMouse,
         updateMode,
+        setLog,
       });
       if (appletOnLoad) appletOnLoad(api);
     },

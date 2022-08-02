@@ -39,6 +39,7 @@ export const App = () => {
             showResetIcon
             showZoomButtons={false}
             showFullscreenButton={false}
+            onLog={console.log}
           />
           <ReactJson />
         </Flex>

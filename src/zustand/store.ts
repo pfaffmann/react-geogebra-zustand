@@ -10,10 +10,16 @@ const store = (set, get) => ({
       state.isScriptLoaded = isLoaded;
     }),
   applets: {},
+  log: () => {},
+  setLogFunction: (func: () => void) =>
+    set(state => {
+      state.log = func;
+    }),
+
   getApplet: (id: string) =>
     Object.fromEntries(
       Object.entries(get().applets[id]).filter(
-        ([key, value]) => !['api'].includes(key)
+        ([key, value]) => !['api', 'mouse'].includes(key)
       )
     ),
   addApplet: (applet: Applet) =>

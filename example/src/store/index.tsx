@@ -19,17 +19,23 @@ type TaskStore = {
 
 const store = (set, get) => ({
   tasks: {
-    initID: {
-      id: 'initID',
+    task1: {
+      id: 'task1',
       isDone: false,
-      text: 'Setze einen Punkt A auf die Koordinate (1, 2).',
+      text: 'Wähle die Geodreieck-Variante 2 aus.',
       subset: {
-        label: 'A',
-        coordinates: {
-          x: 1,
-          y: 2,
-          z: 0,
-        },
+        label: 'Bild1',
+        isVisible: true,
+        objectType: 'image',
+      },
+    },
+    task2: {
+      id: 'task2',
+      isDone: false,
+      text: 'Lege den Nullpunkt des GeoDreiecks auf den Punkt P.',
+      subset: {
+        label: 'GD_{0}',
+        coordinates: { x: 0, y: 2 },
         objectType: 'point',
       },
     },

@@ -18,7 +18,11 @@ export const Observer: React.FC<ObserverProps> = ({}) => {
     getTasks().map(task => {
       updateTaskIsDone(
         task.id,
-        isDeepSubset(getApplet(ids[0]).elements, task.subset)
+        isDeepSubset(
+          getApplet(ids[0]),
+
+          task.subset
+        )
       );
     });
   }, [applets, tasks]);
