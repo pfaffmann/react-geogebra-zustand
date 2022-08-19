@@ -13,12 +13,11 @@ export type Applet = {
   views2D: { [key: string]: GeoGebraView2D };
   mouse: GeoGebraMouse;
   mode: GeoGebraMode;
-  log: () => void | Promise<() => void>;
+  log: (...data: any[]) => void;
 };
 export type Applets = { [key: string]: Applet };
 
 export interface StoreMethods {
-  setLog: (func: Applet['log']) => void;
   addElement: ({
     id,
     element,

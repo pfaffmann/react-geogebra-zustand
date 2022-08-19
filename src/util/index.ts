@@ -54,15 +54,28 @@ export const geogebraElementFromApi = (label: string, api: Applet['api']) => {
   return element;
 };
 
+export const initializeElements = (
+  app: Applet,
+  addElement: StoreMethods['addElement']
+) => {
+  const { id, api } = app;
+  const labels = api.getAllObjectNames();
+
+  labels.map(label => {
+    const element = geogebraElementFromApi(label, api);
+    addElement({ id, element });
+  });
+};
+
 const addListener = (app: Applet, storeMethods: StoreMethods) => (
   label: string
 ) => {
   if (!label) return;
-  const { id, api } = app;
+  const { id, api, log } = app;
   const { addElement } = storeMethods;
   const element = geogebraElementFromApi(label, api);
   addElement({ id, element });
-  console.log(label + ' is added');
+  log(label + ' is added');
   //console.log(api.getXML(label));
   //console.log(api.getCommandString(label));
 };
@@ -86,9 +99,9 @@ const renameListener = (app: Applet, storeMethods: StoreMethods) => (
   oldLabel: string,
   newLabel: string
 ) => {
-  const { id } = app;
+  const { id, log } = app;
   const { renameElement } = storeMethods;
-  console.log('old: ' + oldLabel + ' new: ' + newLabel);
+  log('old: ' + oldLabel + ' new: ' + newLabel);
 
   renameElement({ id, oldLabel, newLabel });
 };
@@ -96,14 +109,14 @@ const renameListener = (app: Applet, storeMethods: StoreMethods) => (
 const clientListener = (app: Applet, storeMethods: StoreMethods) => (
   event: any
 ) => {
-  const { id, api } = app;
+  const { id, api, log } = app;
   const { updateView2D, updateMouse, updateMode, updateElement } = storeMethods;
   const [eventName, eventInfo1, eventInfo2] = event;
   switch (eventName) {
     case 'updateStyle':
       const label = eventInfo1;
       const element = geogebraElementFromApi(label, api);
-      console.log(element.label + ' has changed style');
+      log(element.label + ' has changed style');
       updateElement({ id, element });
 
       //evalXML(xapi2, xml);
@@ -115,30 +128,30 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
         name: modeMap.get(parseInt(eventInfo2)) || '',
       };
       updateMode({ id, mode });
-      console.log('setMode(' + mode.number + ') = ' + mode.name);
+      log('setMode(' + mode.number + ') = ' + mode.name);
       //xapi2.setMode(eventInfo2);
       break;
 
     case 'deselect':
-      console.log('deselect', event);
+      log('deselect ' + JSON.stringify(event));
       //unregisterListeners();
       //xapi2.evalCommand('SelectObjects[]');
       //registerListeners();
       break;
     case 'select':
-      console.log('select', event);
+      log('select ' + JSON.stringify(event));
       //unregisterListeners();
       //xapi2.evalCommand("SelectObjects[" + eventInfo1 + "]");
       //registerListeners();
       break;
 
     case 'mouseDown':
-      console.log('Mouse down');
+      //log('Mouse down');
       var hits =
         (event.hits as Array<string>).length > 0
           ? (event.hits as Array<string>).join(' ')
           : '(none)';
-      console.log(
+      log(
         eventName +
           ' in view ' +
           event.viewNo +
@@ -160,18 +173,18 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
       updateMouse({ id, mouse });
       break;
     case 'addPolygon':
-      console.log('****** POLYGON START ******');
+      log('****** POLYGON START ******');
       break;
     case 'addPolygonComplete':
-      console.log('****** POLYGON ' + eventName + ' FINISHED ******');
+      log('****** POLYGON ' + eventName + ' FINISHED ******');
       break;
 
     case 'viewPropertiesChanged':
-      console.log('viewPropertiesChanged', event);
+      log('viewPropertiesChanged ' + JSON.stringify(event));
       break;
 
     case 'viewChanged2D':
-      console.log('viewChanged2D', event);
+      //log('viewChanged2D ' + JSON.stringify(event));
       const view: GeoGebraView2D = {
         viewNo: event.viewNo,
         viewName:
@@ -198,20 +211,26 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
         view.top = props.top;
       }
       updateView2D({ id, view });
-      //console.log(view);
+      log(
+        `xMin: ${view.xMin?.toFixed(2)}, xMax: ${view.xMax?.toFixed(
+          2
+        )}, yMin: ${view.yMin?.toFixed(2)}, yMax: ${view.yMax?.toFixed(
+          2
+        )}, scale: ${view.scale?.toFixed(2)}`
+      );
       //xapi2.setCoordSystem(xMin, xMax, yMin, yMax);
       break;
 
     case 'dragEnd':
-      console.log('dragEnd', eventInfo1);
+      log('dragEnd ' + JSON.stringify(eventInfo1));
       break;
 
     case 'showStyleBar':
-      console.log('showStyleBar');
+      log('showStyleBar');
       break;
 
     case 'editorStart':
-      console.log('editorStart');
+      log('editorStart');
       break;
 
     case 'editorKeyTyped':

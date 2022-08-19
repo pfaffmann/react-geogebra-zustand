@@ -3,13 +3,16 @@ import { ChakraProvider, Flex } from '@chakra-ui/react';
 import { GeoGebraScriptInjector, GeoGebra } from '../../.';
 import { Observer } from './components/Observer';
 import { ReactJson } from './components/ReactJson';
+import { Log } from './components/Log';
 
 export const App = () => {
+  const [logs, setLogs] = React.useState<string[]>([]);
   return (
     <ChakraProvider>
       <GeoGebraScriptInjector />
       <Flex
-        p={'2rem'}
+        py={'2rem'}
+        px={'1rem'}
         flexDirection="column"
         bg="#DEDEDE"
         maxW={'calc(100vw)'}
@@ -39,8 +42,11 @@ export const App = () => {
             showResetIcon
             showZoomButtons={false}
             showFullscreenButton={false}
-            onLog={console.log}
+            onLog={log => {
+              setLogs(old => [...old, log]);
+            }}
           />
+          <Log logs={logs} />
           <ReactJson />
         </Flex>
 

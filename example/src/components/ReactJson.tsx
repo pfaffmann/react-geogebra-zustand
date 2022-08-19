@@ -1,6 +1,6 @@
 import * as React from 'react';
 import loadable from '@loadable/component';
-import { useStore } from '../../../.';
+import { Applets, useStore } from '../../../.';
 import { Flex, Heading } from '@chakra-ui/react';
 const Json = loadable(() => import('react-json-view'));
 

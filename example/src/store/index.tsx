@@ -39,6 +39,16 @@ const store = (set, get) => ({
         objectType: 'point',
       },
     },
+    task3: {
+      id: 'task3',
+      isDone: false,
+      text: 'Die Fehlerzahl ist 0.',
+      subset: {
+        label: 'Text4',
+        valueString: 'Fehler: 0 ',
+        objectType: 'text',
+      },
+    },
   },
   addTask: (task: Task) =>
     set(state => {

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ReactGeoGebraParameters } from '../types';
 import { useStore } from '../zustand/store';
 import { nanoid } from 'nanoid';
-import { registerListeners } from '../util';
+import { initializeElements, registerListeners } from '../util';
 import { Applet, StoreMethods } from '../types/store';
 import { throttle } from 'throttle-debounce';
 
@@ -18,9 +18,8 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
     updateMouse,
     updateMode,
     renameElement,
-    setLog,
   } = useStore();
-  let { id, appletOnLoad, width, height, onLog, ...rest } = props;
+  let { id, appletOnLoad, onLog, width, height, ...rest } = props;
   const [memorizedId] = React.useState(`${id}-${nanoid(8)}`);
   id = memorizedId;
   const params = {
@@ -35,9 +34,7 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
         mouse: { viewNo: 0, viewName: '', x: 0, y: 0, hits: [] },
         mode: { number: -1, name: '' },
       };
-
-      addApplet(applet);
-      registerListeners(applet, {
+      const storeMethods = {
         addElement,
         updateElement,
         removeElement,
@@ -48,12 +45,15 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
         ) as StoreMethods['updateView2D'],
         updateMouse,
         updateMode,
-        setLog,
-      });
+      };
+
+      addApplet(applet);
+
+      initializeElements(applet, storeMethods.addElement);
+      registerListeners(applet, storeMethods);
+
       if (appletOnLoad) appletOnLoad(api);
     },
-    width,
-    height,
     ...rest,
   };
 
@@ -61,7 +61,6 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
     if (!width || !height) return;
     const applet = applets[memorizedId];
     if (typeof applet === 'undefined') return;
-    console.log(applets);
 
     applet.api.setSize(width, height);
   }, [width, height]);
@@ -93,7 +92,7 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
       );
     }
     applet.inject(params.id);
-  }, [isScriptLoaded, props]);
+  }, [isScriptLoaded]);
 
   return <div id={params.id}></div>;
 };

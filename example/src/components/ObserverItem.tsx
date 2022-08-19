@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Flex, Text } from '@chakra-ui/react';
+import { Flex, Text, useToast } from '@chakra-ui/react';
 import {
   FiCheckCircle as CheckCircleIcon,
   FiCircle as CircleIcon,
@@ -14,6 +14,19 @@ export const ObserverItem: React.FC<ObserverItemProps> = ({
   text,
   isChecked,
 }) => {
+  const toast = useToast();
+
+  React.useEffect(() => {
+    if (!isChecked) return;
+    toast({
+      title: 'Aufgabe erledigt.',
+      description: text,
+      status: 'success',
+      duration: 2000,
+      isClosable: true,
+    });
+  }, [isChecked]);
+
   return (
     <Flex
       px={2}
