@@ -1,4 +1,14 @@
-import { Flex, Heading, Stack } from '@chakra-ui/react';
+import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Box,
+  Flex,
+  Heading,
+  Stack,
+} from '@chakra-ui/react';
 import * as React from 'react';
 import { Applet, isDeepSubset, useStore } from '../../../.';
 import { useTasksStore } from '../store';
@@ -26,6 +36,7 @@ export const Observer: React.FC<ObserverProps> = ({}) => {
       );
     });
   }, [applets, tasks]);
+
   return (
     <Flex
       bg="white"
@@ -39,13 +50,42 @@ export const Observer: React.FC<ObserverProps> = ({}) => {
         Observer
       </Heading>
       <Stack spacing={1}>
-        {getTasks().map(task => (
-          <ObserverItem
-            text={task.text}
-            isChecked={task.isDone}
-            key={task.id}
-          />
-        ))}
+        {getTasks().filter(task => task.isAid).length > 0 && (
+          <Accordion allowMultiple allowToggle>
+            {getTasks()
+              .filter(task => task.isAid)
+              .map((task, index) => (
+                <AccordionItem>
+                  <h2>
+                    <AccordionButton>
+                      <Box flex="1" textAlign="left">
+                        {`Hilfestellung ${index + 1}`}
+                      </Box>
+                      <AccordionIcon />
+                    </AccordionButton>
+                  </h2>
+                  <AccordionPanel pb={4}>
+                    <ObserverItem
+                      text={task.text}
+                      isChecked={task.isDone}
+                      isAid={task.isAid}
+                      key={task.id}
+                    />
+                  </AccordionPanel>
+                </AccordionItem>
+              ))}
+          </Accordion>
+        )}
+        {getTasks()
+          .filter(task => !task.isAid)
+          .map(task => (
+            <ObserverItem
+              text={task.text}
+              isChecked={task.isDone}
+              isAid={task.isAid}
+              key={task.id}
+            />
+          ))}
       </Stack>
     </Flex>
   );

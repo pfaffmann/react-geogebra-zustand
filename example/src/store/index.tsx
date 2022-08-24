@@ -6,6 +6,7 @@ export type Task = {
   id: string;
   text: string;
   isDone: boolean;
+  isAid: boolean;
   subset: Partial<Applet>;
 };
 
@@ -22,6 +23,7 @@ const store = (set, get) => ({
     task1: {
       id: 'task1',
       isDone: false,
+      isAid: true,
       text: 'Wähle die Geodreieck-Variante 2 aus.',
       subset: {
         label: 'Bild1',
@@ -32,6 +34,7 @@ const store = (set, get) => ({
     task2: {
       id: 'task2',
       isDone: false,
+      isAid: true,
       text: 'Lege den Nullpunkt des GeoDreiecks auf den Punkt P.',
       subset: {
         label: 'GD_{0}',
@@ -42,6 +45,7 @@ const store = (set, get) => ({
     task3: {
       id: 'task3',
       isDone: false,
+      isAid: false,
       text: 'Die Fehlerzahl ist 0.',
       subset: {
         label: 'Text4',

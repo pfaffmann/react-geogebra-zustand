@@ -8,20 +8,22 @@ import {
 interface ObserverItemProps {
   text: string;
   isChecked: boolean;
+  isAid: boolean;
 }
 
 export const ObserverItem: React.FC<ObserverItemProps> = ({
   text,
   isChecked,
+  isAid,
 }) => {
   const toast = useToast();
 
   React.useEffect(() => {
     if (!isChecked) return;
     toast({
-      title: 'Aufgabe erledigt.',
+      title: isAid ? 'Hinweis erledigt' : 'Aufgabe erledigt.',
       description: text,
-      status: 'success',
+      status: isAid ? 'info' : 'success',
       duration: 2000,
       isClosable: true,
     });
