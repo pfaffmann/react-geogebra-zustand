@@ -106684,6 +106684,7 @@ var store = function store(set, get) {
       task1: {
         id: 'task1',
         isDone: false,
+        isAid: true,
         text: 'Wähle die Geodreieck-Variante 2 aus.',
         subset: {
           label: 'Bild1',
@@ -106694,6 +106695,7 @@ var store = function store(set, get) {
       task2: {
         id: 'task2',
         isDone: false,
+        isAid: true,
         text: 'Lege den Nullpunkt des GeoDreiecks auf den Punkt P.',
         subset: {
           label: 'GD_{0}',
@@ -106707,6 +106709,7 @@ var store = function store(set, get) {
       task3: {
         id: 'task3',
         isDone: false,
+        isAid: false,
         text: 'Die Fehlerzahl ist 0.',
         subset: {
           label: 'Text4',
@@ -117456,14 +117459,15 @@ var fi_1 = require("react-icons/fi");
 
 exports.ObserverItem = function (_a) {
   var text = _a.text,
-      isChecked = _a.isChecked;
+      isChecked = _a.isChecked,
+      isAid = _a.isAid;
   var toast = react_1.useToast();
   React.useEffect(function () {
     if (!isChecked) return;
     toast({
-      title: 'Aufgabe erledigt.',
+      title: isAid ? 'Hinweis erledigt' : 'Aufgabe erledigt.',
       description: text,
-      status: 'success',
+      status: isAid ? 'info' : 'success',
       duration: 2000,
       isClosable: true
     });
@@ -117566,10 +117570,32 @@ exports.Observer = function (_a) {
     size: "xl"
   }, "Observer"), React.createElement(react_1.Stack, {
     spacing: 1
-  }, getTasks().map(function (task) {
+  }, getTasks().filter(function (task) {
+    return task.isAid;
+  }).length > 0 && React.createElement(react_1.Accordion, {
+    allowMultiple: true,
+    allowToggle: true
+  }, getTasks().filter(function (task) {
+    return task.isAid;
+  }).map(function (task, index) {
+    return React.createElement(react_1.AccordionItem, null, React.createElement("h2", null, React.createElement(react_1.AccordionButton, null, React.createElement(react_1.Box, {
+      flex: "1",
+      textAlign: "left"
+    }, "Hilfestellung " + (index + 1)), React.createElement(react_1.AccordionIcon, null))), React.createElement(react_1.AccordionPanel, {
+      pb: 4
+    }, React.createElement(ObserverItem_1.ObserverItem, {
+      text: task.text,
+      isChecked: task.isDone,
+      isAid: task.isAid,
+      key: task.id
+    })));
+  })), getTasks().filter(function (task) {
+    return !task.isAid;
+  }).map(function (task) {
     return React.createElement(ObserverItem_1.ObserverItem, {
       text: task.text,
       isChecked: task.isDone,
+      isAid: task.isAid,
       key: task.id
     });
   })));
@@ -118514,7 +118540,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51096" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49496" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
