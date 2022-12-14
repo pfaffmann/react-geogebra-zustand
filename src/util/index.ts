@@ -110,7 +110,15 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
   event: any
 ) => {
   const { id, api, log } = app;
-  const { updateView2D, updateMouse, updateMode, updateElement } = storeMethods;
+  const {
+    updateView2D,
+    updateMouse,
+    updateMode,
+    updateElement,
+    updateSelectedElements,
+    getSelectedElements,
+    getElement,
+  } = storeMethods;
   const [eventName, eventInfo1, eventInfo2] = event;
   switch (eventName) {
     case 'updateStyle':
@@ -137,12 +145,22 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
       //unregisterListeners();
       //xapi2.evalCommand('SelectObjects[]');
       //registerListeners();
+      updateSelectedElements({ id, selectedElements: [] });
       break;
     case 'select':
       log('select ' + JSON.stringify(event));
+      const elementLabel = eventInfo1;
+      const selectedElements = getSelectedElements({ id });
+      const selectedElement = getElement({ id, label: elementLabel }); //geogebraElementFromApi(elementLabel, api);
+      updateSelectedElements({
+        id,
+        selectedElements: [...selectedElements, selectedElement],
+      });
+
       //unregisterListeners();
       //xapi2.evalCommand("SelectObjects[" + eventInfo1 + "]");
       //registerListeners();
+
       break;
 
     case 'mouseDown':

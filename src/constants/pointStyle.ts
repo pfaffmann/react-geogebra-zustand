@@ -10,7 +10,7 @@ export const POINT = {
   TRIANGLE_EAST: 8,
   TRIANGLE_WEST: 9,
   FULL_DOT_NO_OUTLINE: 10,
-};
+} as const;
 
 export const pointMap = new Map<number, string>();
 pointMap.set(0, 'FULL_DOT');

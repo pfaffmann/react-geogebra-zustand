@@ -10,6 +10,7 @@ export type Applet = {
   id: string;
   api: API;
   elements: { [key: string]: GeoGebraElement };
+  selectedElements: GeoGebraElement[];
   views2D: { [key: string]: GeoGebraView2D };
   mouse: GeoGebraMouse;
   mode: GeoGebraMode;
@@ -25,6 +26,7 @@ export interface StoreMethods {
     id: string;
     element: GeoGebraElement;
   }) => void;
+  getElement: ({ id, label }: { id: string; label: string }) => GeoGebraElement;
   updateElement: ({
     id,
     element,
@@ -45,6 +47,14 @@ export interface StoreMethods {
   updateView2D: ({ id, view }: { id: string; view: GeoGebraView2D }) => void;
   updateMouse: ({ id, mouse }: { id: string; mouse: GeoGebraMouse }) => void;
   updateMode: ({ id, mode }: { id: string; mode: GeoGebraMode }) => void;
+  updateSelectedElements: ({
+    id,
+    selectedElements,
+  }: {
+    id: string;
+    selectedElements: Applet['selectedElements'];
+  }) => void;
+  getSelectedElements: ({ id }: { id: string }) => Applet['selectedElements'];
 }
 
 export type GeoGebraStore = {

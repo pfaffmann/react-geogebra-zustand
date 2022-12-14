@@ -9,7 +9,7 @@ const store = (set, get) => ({
     set(state => {
       state.isScriptLoaded = isLoaded;
     }),
-  applets: {},
+  applets: {} as Applet,
 
   getApplet: (id: string) =>
     Object.fromEntries(
@@ -25,6 +25,8 @@ const store = (set, get) => ({
     set(state => {
       state.applets[id].elements[element.label] = element;
     }),
+  getElement: ({ id, label }): StoreMethods['getElement'] =>
+    get().applets[id].elements[label],
   updateElement: ({ id, element }): StoreMethods['updateElement'] =>
     set(state => {
       state.applets[id].elements[element.label] = element;
@@ -51,6 +53,15 @@ const store = (set, get) => ({
     set(state => {
       state.applets[id].mode = mode;
     }),
+  updateSelectedElements: ({
+    id,
+    selectedElements,
+  }): StoreMethods['updateSelectedElements'] =>
+    set(state => {
+      state.applets[id].selectedElements = selectedElements;
+    }),
+  getSelectedElements: ({ id }): StoreMethods['getSelectedElements'] =>
+    get().applets[id].selectedElements,
 });
 
 export const useStore = create<GeoGebraStore>()(

@@ -12,12 +12,15 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
   const addApplet = useStore(state => state.addApplet);
   const {
     addElement,
+    getElement,
     updateElement,
     removeElement,
     updateView2D,
     updateMouse,
     updateMode,
     renameElement,
+    updateSelectedElements,
+    getSelectedElements,
   } = useStore();
   let { id, appletOnLoad, onLog, width, height, ...rest } = props;
   const [memorizedId] = React.useState(`${id}-${nanoid(8)}`);
@@ -33,9 +36,11 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
         log: onLog ? onLog : console.log,
         mouse: { viewNo: 0, viewName: '', x: 0, y: 0, hits: [] },
         mode: { number: -1, name: '' },
+        selectedElements: [],
       };
       const storeMethods = {
         addElement,
+        getElement,
         updateElement,
         removeElement,
         renameElement,
@@ -45,6 +50,8 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
         ) as StoreMethods['updateView2D'],
         updateMouse,
         updateMode,
+        updateSelectedElements,
+        getSelectedElements,
       };
 
       addApplet(applet);
