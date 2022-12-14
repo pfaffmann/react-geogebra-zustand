@@ -35,7 +35,7 @@ export const App = () => {
             height={400}
             material_id="vtcdcune"
             useBrowserForJS={false}
-            showMenuBar={true}
+            showMenuBar={false}
             showToolBar={false}
             algebraInputPosition="none"
             allowStyleBar={false}
