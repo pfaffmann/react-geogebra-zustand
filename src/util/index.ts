@@ -194,23 +194,25 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
         yZero: event.yZero,
         yscale: event.yscale,
       };
-      if (parseInt(event.viewNo) <= 1) {
-        const props = JSON.parse(api.getViewProperties(event.viewNo));
-        const xMax = props.xMin + props.width * props.invXscale;
-        const yMax = props.yMin + props.height * props.invYscale;
 
-        view.invXscale = props.invXscale;
-        view.invYscale = props.invYscale;
-        view.xMin = props.xMin;
-        view.yMin = props.yMin;
-        view.xMax = xMax;
-        view.yMax = yMax;
-        view.width = props.width;
-        view.height = props.height;
-        view.left = props.left;
-        view.top = props.top;
-      }
+      const props = JSON.parse(api.getViewProperties(event.viewNo));
+
+      const xMax = props.xMin + props.width * props.invXscale;
+      const yMax = props.yMin + props.height * props.invYscale;
+
+      view.invXscale = props.invXscale;
+      view.invYscale = props.invYscale;
+      view.xMin = props.xMin;
+      view.yMin = props.yMin;
+      view.xMax = xMax;
+      view.yMax = yMax;
+      view.width = props.width;
+      view.height = props.height;
+      view.left = props.left;
+      view.top = props.top;
+
       updateView2D({ id, view });
+
       log(
         `xMin: ${view.xMin?.toFixed(2)}, xMax: ${view.xMax?.toFixed(
           2
