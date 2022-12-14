@@ -105828,49 +105828,65 @@ var store = function store(set, get) {
         state.applets[id].elements[element.label] = element;
       });
     },
-    updateElement: function updateElement(_ref3) {
+    getElement: function getElement(_ref3) {
       var id = _ref3.id,
-          element = _ref3.element;
+          label = _ref3.label;
+      return get().applets[id].elements[label];
+    },
+    updateElement: function updateElement(_ref4) {
+      var id = _ref4.id,
+          element = _ref4.element;
       return set(function (state) {
         state.applets[id].elements[element.label] = element;
       });
     },
-    removeElement: function removeElement(_ref4) {
-      var id = _ref4.id,
-          label = _ref4.label;
+    removeElement: function removeElement(_ref5) {
+      var id = _ref5.id,
+          label = _ref5.label;
       return set(function (state) {
         delete state.applets[id].elements[label];
       });
     },
-    renameElement: function renameElement(_ref5) {
-      var id = _ref5.id,
-          oldLabel = _ref5.oldLabel,
-          newLabel = _ref5.newLabel;
+    renameElement: function renameElement(_ref6) {
+      var id = _ref6.id,
+          oldLabel = _ref6.oldLabel,
+          newLabel = _ref6.newLabel;
       return set(function (state) {
         state.applets[id].elements[newLabel] = state.applets[id].elements[oldLabel];
         delete state.applets[id].elements[oldLabel];
       });
     },
-    updateView2D: function updateView2D(_ref6) {
-      var id = _ref6.id,
-          view = _ref6.view;
+    updateView2D: function updateView2D(_ref7) {
+      var id = _ref7.id,
+          view = _ref7.view;
       return set(function (state) {
         state.applets[id].views2D[view.viewNo] = view;
       });
     },
-    updateMouse: function updateMouse(_ref7) {
-      var id = _ref7.id,
-          mouse = _ref7.mouse;
+    updateMouse: function updateMouse(_ref8) {
+      var id = _ref8.id,
+          mouse = _ref8.mouse;
       return set(function (state) {
         state.applets[id].mouse = mouse;
       });
     },
-    updateMode: function updateMode(_ref8) {
-      var id = _ref8.id,
-          mode = _ref8.mode;
+    updateMode: function updateMode(_ref9) {
+      var id = _ref9.id,
+          mode = _ref9.mode;
       return set(function (state) {
         state.applets[id].mode = mode;
       });
+    },
+    updateSelectedElements: function updateSelectedElements(_ref10) {
+      var id = _ref10.id,
+          selectedElements = _ref10.selectedElements;
+      return set(function (state) {
+        state.applets[id].selectedElements = selectedElements;
+      });
+    },
+    getSelectedElements: function getSelectedElements(_ref11) {
+      var id = _ref11.id;
+      return get().applets[id].selectedElements;
     }
   };
 };
@@ -106278,7 +106294,10 @@ var clientListener = function clientListener(app, storeMethods) {
     var updateView2D = storeMethods.updateView2D,
         updateMouse = storeMethods.updateMouse,
         updateMode = storeMethods.updateMode,
-        updateElement = storeMethods.updateElement;
+        updateElement = storeMethods.updateElement,
+        updateSelectedElements = storeMethods.updateSelectedElements,
+        getSelectedElements = storeMethods.getSelectedElements,
+        getElement = storeMethods.getElement;
     var eventName = event[0],
         eventInfo1 = event[1],
         eventInfo2 = event[2];
@@ -106313,10 +106332,27 @@ var clientListener = function clientListener(app, storeMethods) {
         //xapi2.evalCommand('SelectObjects[]');
         //registerListeners();
 
+        updateSelectedElements({
+          id: id,
+          selectedElements: []
+        });
         break;
 
       case 'select':
-        log('select ' + JSON.stringify(event)); //unregisterListeners();
+        log('select ' + JSON.stringify(event));
+        var elementLabel = eventInfo1;
+        var selectedElements = getSelectedElements({
+          id: id
+        });
+        var selectedElement = getElement({
+          id: id,
+          label: elementLabel
+        }); //geogebraElementFromApi(elementLabel, api);
+
+        updateSelectedElements({
+          id: id,
+          selectedElements: [].concat(selectedElements, [selectedElement])
+        }); //unregisterListeners();
         //xapi2.evalCommand("SelectObjects[" + eventInfo1 + "]");
         //registerListeners();
 
@@ -106361,23 +106397,19 @@ var clientListener = function clientListener(app, storeMethods) {
           yZero: event.yZero,
           yscale: event.yscale
         };
-
-        if (parseInt(event.viewNo) <= 1) {
-          var props = JSON.parse(api.getViewProperties(event.viewNo));
-          var xMax = props.xMin + props.width * props.invXscale;
-          var yMax = props.yMin + props.height * props.invYscale;
-          view.invXscale = props.invXscale;
-          view.invYscale = props.invYscale;
-          view.xMin = props.xMin;
-          view.yMin = props.yMin;
-          view.xMax = xMax;
-          view.yMax = yMax;
-          view.width = props.width;
-          view.height = props.height;
-          view.left = props.left;
-          view.top = props.top;
-        }
-
+        var props = JSON.parse(api.getViewProperties(event.viewNo));
+        var xMax = props.xMin + props.width * props.invXscale;
+        var yMax = props.yMin + props.height * props.invYscale;
+        view.invXscale = props.invXscale;
+        view.invYscale = props.invYscale;
+        view.xMin = props.xMin;
+        view.yMin = props.yMin;
+        view.xMax = xMax;
+        view.yMax = yMax;
+        view.width = props.width;
+        view.height = props.height;
+        view.left = props.left;
+        view.top = props.top;
         updateView2D({
           id: id,
           view: view
@@ -106472,12 +106504,15 @@ var Geogebra = function Geogebra(props) {
 
   var _useStore = useStore(),
       addElement = _useStore.addElement,
+      getElement = _useStore.getElement,
       updateElement = _useStore.updateElement,
       removeElement = _useStore.removeElement,
       updateView2D = _useStore.updateView2D,
       updateMouse = _useStore.updateMouse,
       updateMode = _useStore.updateMode,
-      renameElement = _useStore.renameElement;
+      renameElement = _useStore.renameElement,
+      updateSelectedElements = _useStore.updateSelectedElements,
+      getSelectedElements = _useStore.getSelectedElements;
 
   var id = props.id,
       _appletOnLoad = props.appletOnLoad,
@@ -106510,16 +106545,20 @@ var Geogebra = function Geogebra(props) {
         mode: {
           number: -1,
           name: ''
-        }
+        },
+        selectedElements: []
       };
       var storeMethods = {
         addElement: addElement,
+        getElement: getElement,
         updateElement: updateElement,
         removeElement: removeElement,
         renameElement: renameElement,
         updateView2D: (0, _throttleDebounce.throttle)(50, updateView2D),
         updateMouse: updateMouse,
-        updateMode: updateMode
+        updateMode: updateMode,
+        updateSelectedElements: updateSelectedElements,
+        getSelectedElements: getSelectedElements
       };
       addApplet(applet);
       initializeElements(applet, storeMethods.addElement);
@@ -118540,7 +118579,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52244" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50394" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
