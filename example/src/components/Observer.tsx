@@ -55,7 +55,7 @@ export const Observer: React.FC<ObserverProps> = ({}) => {
             {getTasks()
               .filter(task => task.isAid)
               .map((task, index) => (
-                <AccordionItem>
+                <AccordionItem key={task.id}>
                   <h2>
                     <AccordionButton>
                       <Box flex="1" textAlign="left">

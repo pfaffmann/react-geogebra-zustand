@@ -64,6 +64,39 @@ export type GeoGebraView2D = {
   top?: number;
 };
 
+export type GeoGebraView3D = {
+  viewNo: number;
+  viewName: string;
+  scale: number;
+  xAngle: number;
+  xZero: number;
+  yZero: number;
+  yscale: number;
+  zAngle: number;
+  xMin?: number;
+  yMin?: number;
+  xMax?: number;
+  yMax?: number;
+  width?: number;
+  height?: number;
+  left?: number;
+  top?: number;
+  invXscale?: number;
+  invYscale?: number;
+};
+
+// x0: "viewChanged3D"
+// x1: ""
+// xlength: 2
+// x scale: 50
+// y type: "viewChanged3D"
+// x viewNo: 512
+// x xAngle: -60
+// x xZero: 0
+// x yZero: 0
+// x yscale: 50
+// zAngle: 20
+
 export type GeoGebraMode = {
   number: number;
   name: string;

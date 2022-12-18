@@ -5,6 +5,8 @@ import { Observer } from './components/Observer';
 import { ReactJson } from './components/ReactJson';
 import { Log } from './components/Log';
 
+const DEV = true;
+
 export const App = () => {
   const [logs, setLogs] = React.useState<string[]>([]);
   return (
@@ -35,7 +37,7 @@ export const App = () => {
             height={400}
             material_id="vtcdcune"
             useBrowserForJS={false}
-            showMenuBar={false}
+            showMenuBar={DEV || false}
             showToolBar={false}
             algebraInputPosition="none"
             allowStyleBar={false}

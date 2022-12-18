@@ -45,6 +45,10 @@ const store = (set, get) => ({
     set(state => {
       state.applets[id].views2D[view.viewNo] = view;
     }),
+  updateView3D: ({ id, view }): StoreMethods['updateView2D'] =>
+    set(state => {
+      state.applets[id].view3D[view.viewNo] = view;
+    }),
   updateMouse: ({ id, mouse }): StoreMethods['updateMouse'] =>
     set(state => {
       state.applets[id].mouse = mouse;

@@ -16,6 +16,7 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
     updateElement,
     removeElement,
     updateView2D,
+    updateView3D,
     updateMouse,
     updateMode,
     renameElement,
@@ -33,6 +34,7 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
         api,
         elements: {},
         views2D: {},
+        view3D: {},
         log: onLog ? onLog : console.log,
         mouse: { viewNo: 0, viewName: '', x: 0, y: 0, hits: [] },
         mode: { number: -1, name: '' },
@@ -48,6 +50,10 @@ const Geogebra: React.FC<ReactGeoGebraParameters> = props => {
           50,
           updateView2D
         ) as StoreMethods['updateView2D'],
+        updateView3D: throttle(
+          50,
+          updateView3D
+        ) as StoreMethods['updateView3D'],
         updateMouse,
         updateMode,
         updateSelectedElements,

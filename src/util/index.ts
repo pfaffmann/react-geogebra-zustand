@@ -3,6 +3,7 @@ import {
   GeoGebraElement,
   GeoGebraMouse,
   GeoGebraView2D,
+  GeoGebraView3D,
   XYZPosition,
 } from '../types';
 import { modeMap } from '../constants/mode';
@@ -112,6 +113,7 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
   const { id, api, log } = app;
   const {
     updateView2D,
+    updateView3D,
     updateMouse,
     updateMode,
     updateElement,
@@ -231,6 +233,7 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
 
       updateView2D({ id, view });
 
+      console.log(event);
       log(
         `xMin: ${view.xMin?.toFixed(2)}, xMax: ${view.xMax?.toFixed(
           2
@@ -239,6 +242,22 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
         )}, scale: ${view.scale?.toFixed(2)}`
       );
       //xapi2.setCoordSystem(xMin, xMax, yMin, yMax);
+      break;
+
+    case 'viewChanged3D':
+      const view3D: GeoGebraView3D = {
+        viewNo: event.viewNo,
+        viewName:
+          viewNamesMap.get(viewNoToViewXMLNo(parseInt(event.viewNo))) || '',
+        scale: event.scale,
+        xZero: event.xZero,
+        yZero: event.yZero,
+        yscale: event.yscale,
+        xAngle: event.xAngle,
+        zAngle: event.zAngle,
+      };
+
+      updateView3D({ id, view: view3D });
       break;
 
     case 'dragEnd':

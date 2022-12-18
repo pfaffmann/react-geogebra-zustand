@@ -3,6 +3,7 @@ import {
   GeoGebraMode,
   GeoGebraMouse,
   GeoGebraView2D,
+  GeoGebraView3D,
 } from '.';
 import { GeoGebraElement } from '.';
 
@@ -12,6 +13,7 @@ export type Applet = {
   elements: { [key: string]: GeoGebraElement };
   selectedElements: GeoGebraElement[];
   views2D: { [key: string]: GeoGebraView2D };
+  view3D: { [key: string]: GeoGebraView3D };
   mouse: GeoGebraMouse;
   mode: GeoGebraMode;
   log: (...data: any[]) => void;
@@ -45,6 +47,7 @@ export interface StoreMethods {
     newLabel: string;
   }) => void;
   updateView2D: ({ id, view }: { id: string; view: GeoGebraView2D }) => void;
+  updateView3D: ({ id, view }: { id: string; view: GeoGebraView3D }) => void;
   updateMouse: ({ id, mouse }: { id: string; mouse: GeoGebraMouse }) => void;
   updateMode: ({ id, mode }: { id: string; mode: GeoGebraMode }) => void;
   updateSelectedElements: ({
