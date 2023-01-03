@@ -172,15 +172,9 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
           ? (event.hits as Array<string>).join(' ')
           : '(none)';
       log(
-        eventName +
-          ' in view ' +
-          event.viewNo +
-          ' at (' +
-          event.x +
-          ', ' +
-          event.y +
-          ') hitting objects: ' +
-          hits
+        `${eventName} in view ${viewNamesMap.get(parseInt(event.viewNo))} at (${
+          event.x
+        },${event.y}${event.z ? ', ' + event.z : ''}) hitting objects: ${hits}`
       );
       const mouse: GeoGebraMouse = {
         viewNo: event.viewNo,
@@ -251,7 +245,9 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
         scale: event.scale,
         xZero: event.xZero,
         yZero: event.yZero,
+        zZero: event.zZero,
         yscale: event.yscale,
+        zscale: event.zscale,
         xAngle: event.xAngle,
         zAngle: event.zAngle,
       };

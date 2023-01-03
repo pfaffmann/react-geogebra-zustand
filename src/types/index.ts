@@ -71,7 +71,9 @@ export type GeoGebraView3D = {
   xAngle: number;
   xZero: number;
   yZero: number;
+  zZero: number;
   yscale: number;
+  zscale: number;
   zAngle: number;
   xMin?: number;
   yMin?: number;
