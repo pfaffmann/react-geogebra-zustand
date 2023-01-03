@@ -233,7 +233,6 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
 
       updateView2D({ id, view });
 
-      console.log(event);
       log(
         `xMin: ${view.xMin?.toFixed(2)}, xMax: ${view.xMax?.toFixed(
           2
