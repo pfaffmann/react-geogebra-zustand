@@ -86,9 +86,11 @@ const updateListener = (app: Applet, storeMethods: StoreMethods) => (
   label: string
 ) => {
   const { id, api } = app;
-  const { updateElement } = storeMethods;
+  const { updateElement, getElement } = storeMethods;
+  const prevElement = getElement({ id, label });
   const element = geogebraElementFromApi(label, api);
-  updateElement({ id, element });
+
+  updateElement({ id, element: { ...prevElement, ...element } });
 };
 const removeListener = (app: Applet, storeMethods: StoreMethods) => (
   label: string

@@ -71,9 +71,9 @@ const store = (set, get) => ({
       isAid: false,
       text: 'Bewege Q auf eine Position, so dass die Sehnenlänge maximal wird.',
       subset: {
-        label: 'Q',
-        objectType: 'point',
-        coordinates: { x: 13.006148224686648, y: 5.848849140798627 },
+        label: 's',
+        objectType: 'segment',
+        valueString: 's = 4',
       },
     },
     task5: {
@@ -82,9 +82,9 @@ const store = (set, get) => ({
       isAid: false,
       text: 'Bewege Q auf eine Position, so dass die Sehnenlänge maximal wird.',
       subset: {
-        label: 'Q',
-        objectType: 'point',
-        coordinates: { x: 11, y: 9.302301718402752 },
+        label: 's',
+        objectType: 'segment',
+        valueString: 's = 3.99',
       },
     },
   },
