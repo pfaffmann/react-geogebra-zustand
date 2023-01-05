@@ -9,6 +9,8 @@ import {
 import { modeMap } from '../constants/mode';
 import { viewNamesMap, viewNoToViewXMLNo } from '../constants/view';
 
+import parser from 'xml2json-light';
+
 export const geogebraElementFromApi = (label: string, api: Applet['api']) => {
   const objectType = api.getObjectType(label);
   let coordinates: XYZPosition | undefined = undefined;
@@ -49,7 +51,8 @@ export const geogebraElementFromApi = (label: string, api: Applet['api']) => {
     isLabelVisible: api.getLabelVisible(label),
     isIndependent: api.isIndependent(label),
     isMoveable: api.isMoveable(label),
-    xml: api.getXML(label),
+    wasDragged: false,
+    xml: parser.xml2json(api.getXML(label))['element'] || {},
   };
 
   return element;
@@ -256,7 +259,13 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
       break;
 
     case 'dragEnd':
+      const draggedElementLabel = eventInfo1;
       log('dragEnd ' + JSON.stringify(eventInfo1));
+      const draggedElement = geogebraElementFromApi(draggedElementLabel, api);
+      if (draggedElement.wasDragged) break;
+      draggedElement.wasDragged = true;
+
+      updateElement({ id, element: draggedElement });
       break;
 
     case 'showStyleBar':

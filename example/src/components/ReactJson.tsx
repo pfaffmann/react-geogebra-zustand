@@ -11,7 +11,7 @@ export const ReactJson: React.FC<ReactJsonProps> = ({}) => {
 
   return (
     <Flex
-      width="400px"
+      width="calc(50vw - 2rem - 20px)"
       height="400px"
       overflowY="auto"
       flexDirection="column"

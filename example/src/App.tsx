@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChakraProvider, Flex } from '@chakra-ui/react';
+import { ChakraProvider, Wrap, WrapItem } from '@chakra-ui/react';
 import { GeoGebraScriptInjector, GeoGebra } from '../../.';
 import { Observer } from './components/Observer';
 import { ReactJson } from './components/ReactJson';
@@ -12,33 +12,17 @@ export const App = () => {
   return (
     <ChakraProvider>
       <GeoGebraScriptInjector />
-      <Flex
-        py={'2rem'}
-        px={'1rem'}
-        flexDirection="column"
-        bg="#DEDEDE"
-        maxW={'calc(100vw)'}
-        minHeight="calc(100vh)"
-      >
-        <Flex
-          flexDirection={['column', 'column', 'column', 'row']}
-          alignItems="center"
-          justifyContent={[
-            'flex-start',
-            'flex-start',
-            'flex-start',
-            'space-between',
-          ]}
-          pb={'1rem'}
-        >
+      <Wrap spacing={'40px'} p="2rem">
+        <WrapItem>
           <GeoGebra
             id="app1"
             width={600}
             height={400}
-            material_id="vtcdcune"
+            material_id="wjgQ3PQB"
             useBrowserForJS={false}
             showMenuBar={DEV || false}
             showToolBar={false}
+            enableShiftDragZoom={false}
             algebraInputPosition="none"
             allowStyleBar={false}
             showResetIcon
@@ -48,12 +32,17 @@ export const App = () => {
               setLogs(old => [...old, log]);
             }}
           />
+        </WrapItem>
+        <WrapItem>
+          <Observer />
+        </WrapItem>
+        <WrapItem>
           <Log logs={logs} />
+        </WrapItem>
+        <WrapItem>
           <ReactJson />
-        </Flex>
-
-        <Observer />
-      </Flex>
+        </WrapItem>
+      </Wrap>
     </ChakraProvider>
   );
 };

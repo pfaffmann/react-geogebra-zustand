@@ -15,7 +15,7 @@ export type PointSize = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type GeoGebraElement = {
   label: string;
-  xml: string;
+  xml: {};
   coordinates?: XYPosition | XYZPosition;
   value?: number;
   listValue?: number;
@@ -43,6 +43,8 @@ export type GeoGebraElement = {
   isLabelVisible?: boolean;
   isIndependent?: boolean;
   isMoveable?: boolean;
+  isDragged?: boolean;
+  wasDragged?: boolean;
 };
 
 export type GeoGebraView2D = {

@@ -40,11 +40,10 @@ export const Observer: React.FC<ObserverProps> = ({}) => {
   return (
     <Flex
       bg="white"
-      maxWidth="100vw"
-      p={2}
       rounded="lg"
       shadow="lg"
       flexDirection="column"
+      minW="calc(45vw - 2rem - 40px)"
     >
       <Heading as="h1" size="xl">
         Observer
