@@ -51,7 +51,6 @@ export const geogebraElementFromApi = (label: string, api: Applet['api']) => {
     isLabelVisible: api.getLabelVisible(label),
     isIndependent: api.isIndependent(label),
     isMoveable: api.isMoveable(label),
-    wasDragged: false,
     xml: parser.xml2json(api.getXML(label))['element'] || {},
   };
 
@@ -262,7 +261,7 @@ const clientListener = (app: Applet, storeMethods: StoreMethods) => (
       const draggedElementLabel = eventInfo1;
       log('dragEnd ' + JSON.stringify(eventInfo1));
       const draggedElement = geogebraElementFromApi(draggedElementLabel, api);
-      if (draggedElement.wasDragged) break;
+      if (draggedElement?.wasDragged) break;
       draggedElement.wasDragged = true;
 
       updateElement({ id, element: draggedElement });
