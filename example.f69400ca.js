@@ -106403,7 +106403,6 @@ var geogebraElementFromApi = function geogebraElementFromApi(label, api) {
     isLabelVisible: api.getLabelVisible(label),
     isIndependent: api.isIndependent(label),
     isMoveable: api.isMoveable(label),
-    wasDragged: false,
     xml: _xml2jsonLight.default.xml2json(api.getXML(label))['element'] || {}
   };
   return element;
@@ -106443,11 +106442,16 @@ var updateListener = function updateListener(app, storeMethods) {
   return function (label) {
     var id = app.id,
         api = app.api;
-    var updateElement = storeMethods.updateElement;
+    var updateElement = storeMethods.updateElement,
+        getElement = storeMethods.getElement;
+    var prevElement = getElement({
+      id: id,
+      label: label
+    });
     var element = geogebraElementFromApi(label, api);
     updateElement({
       id: id,
-      element: element
+      element: _extends({}, prevElement, element)
     });
   };
 };
@@ -106635,7 +106639,7 @@ var clientListener = function clientListener(app, storeMethods) {
         var draggedElementLabel = eventInfo1;
         log('dragEnd ' + JSON.stringify(eventInfo1));
         var draggedElement = geogebraElementFromApi(draggedElementLabel, api);
-        if (draggedElement.wasDragged) break;
+        if (draggedElement != null && draggedElement.wasDragged) break;
         draggedElement.wasDragged = true;
         updateElement({
           id: id,
@@ -106998,12 +107002,9 @@ var store = function store(set, get) {
         isAid: false,
         text: 'Bewege Q auf eine Position, so dass die Sehnenlänge maximal wird.',
         subset: {
-          label: 'Q',
-          objectType: 'point',
-          coordinates: {
-            x: 13.006148224686648,
-            y: 5.848849140798627
-          }
+          label: 's',
+          objectType: 'segment',
+          valueString: 's = 4'
         }
       },
       task5: {
@@ -107012,12 +107013,9 @@ var store = function store(set, get) {
         isAid: false,
         text: 'Bewege Q auf eine Position, so dass die Sehnenlänge maximal wird.',
         subset: {
-          label: 'Q',
-          objectType: 'point',
-          coordinates: {
-            x: 11,
-            y: 9.302301718402752
-          }
+          label: 's',
+          objectType: 'segment',
+          valueString: 's = 3.99'
         }
       }
     },
@@ -118838,7 +118836,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56274" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62892" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
