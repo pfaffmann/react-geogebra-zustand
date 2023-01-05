@@ -55,22 +55,28 @@ export const Observer: React.FC<ObserverProps> = ({}) => {
               .filter(task => task.isAid)
               .map((task, index) => (
                 <AccordionItem key={task.id}>
-                  <h2>
-                    <AccordionButton>
-                      <Box flex="1" textAlign="left">
-                        {`Hilfestellung ${index + 1}`}
-                      </Box>
-                      <AccordionIcon />
-                    </AccordionButton>
-                  </h2>
-                  <AccordionPanel pb={4}>
-                    <ObserverItem
-                      text={task.text}
-                      isChecked={task.isDone}
-                      isAid={task.isAid}
-                      key={task.id}
-                    />
-                  </AccordionPanel>
+                  {({ isExpanded }) => (
+                    <>
+                      <h2>
+                        <AccordionButton>
+                          <Box flex="1" textAlign="left">
+                            {`Hilfestellung ${index + 1}`}
+                          </Box>
+                          <AccordionIcon />
+                        </AccordionButton>
+                      </h2>
+                      <AccordionPanel pb={4}>
+                        {isExpanded && (
+                          <ObserverItem
+                            text={task.text}
+                            isChecked={task.isDone}
+                            isAid={task.isAid}
+                            key={task.id}
+                          />
+                        )}
+                      </AccordionPanel>
+                    </>
+                  )}
                 </AccordionItem>
               ))}
           </Accordion>

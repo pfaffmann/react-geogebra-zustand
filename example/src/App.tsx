@@ -5,14 +5,12 @@ import { Observer } from './components/Observer';
 import { ReactJson } from './components/ReactJson';
 import { Log } from './components/Log';
 
-const DEV = true;
-
 export const App = () => {
   const [logs, setLogs] = React.useState<string[]>([]);
   return (
     <ChakraProvider>
       <GeoGebraScriptInjector />
-      <Wrap spacing={'40px'} p="2rem">
+      <Wrap spacing={'20px'} p="2rem">
         <WrapItem>
           <GeoGebra
             id="app1"
@@ -20,7 +18,7 @@ export const App = () => {
             height={400}
             material_id="wjgQ3PQB"
             useBrowserForJS={false}
-            showMenuBar={DEV || false}
+            showMenuBar={false}
             showToolBar={false}
             enableShiftDragZoom={false}
             algebraInputPosition="none"
