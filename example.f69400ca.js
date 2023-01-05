@@ -105582,7 +105582,190 @@ var nanoid = function nanoid() {
 };
 
 exports.nanoid = nanoid;
-},{"./url-alphabet/index.js":"../node_modules/nanoid/url-alphabet/index.js"}],"../node_modules/throttle-debounce/esm/index.js":[function(require,module,exports) {
+},{"./url-alphabet/index.js":"../node_modules/nanoid/url-alphabet/index.js"}],"../node_modules/xml2json-light/xml2json.js":[function(require,module,exports) {
+'use strict';
+
+module.exports = {
+    xml2json: xml2json
+};
+
+//***********************************************************************
+// Main function. Clears the given xml and then starts the recursion
+//***********************************************************************
+function xml2json(xmlStr){ 
+    xmlStr = cleanXML(xmlStr);
+    return xml2jsonRecurse(xmlStr,0); 
+}
+
+//***********************************************************************
+// Recursive function that creates a JSON object with a given XML string.
+//***********************************************************************
+function xml2jsonRecurse(xmlStr) {
+    var obj = {},
+        tagName, indexClosingTag, inner_substring, tempVal, openingTag;
+
+    while (xmlStr.match(/<[^\/][^>]*>/)) {
+        openingTag = xmlStr.match(/<[^\/][^>]*>/)[0];
+        tagName = openingTag.substring(1, openingTag.length - 1);
+        indexClosingTag = xmlStr.indexOf(openingTag.replace('<', '</'));
+
+        // account for case where additional information in the openning tag
+        if (indexClosingTag == -1) {
+
+            tagName = openingTag.match(/[^<][\w+$]*/)[0];
+            indexClosingTag = xmlStr.indexOf('</' + tagName);
+            if (indexClosingTag == -1) {
+                indexClosingTag = xmlStr.indexOf('<\\/' + tagName);
+            }
+        }
+        inner_substring = xmlStr.substring(openingTag.length, indexClosingTag);
+        if (inner_substring.match(/<[^\/][^>]*>/)) {
+            tempVal = xml2json(inner_substring);
+        }
+        else {
+            tempVal = inner_substring;
+        }
+        // account for array or obj //
+        if (obj[tagName] === undefined) {
+            obj[tagName] = tempVal;
+        }
+        else if (Array.isArray(obj[tagName])) {
+            obj[tagName].push(tempVal);
+        }
+        else {
+            obj[tagName] = [obj[tagName], tempVal];
+        }
+
+        xmlStr = xmlStr.substring(openingTag.length * 2 + 1 + inner_substring.length);
+    }
+
+    return obj;
+}
+
+//*****************************************************************
+// Removes some characters that would break the recursive function.
+//*****************************************************************
+function cleanXML(xmlStr) {
+    
+    xmlStr = xmlStr.replace( /<!--[\s\S]*?-->/g, '' ); //remove commented lines
+    xmlStr = xmlStr.replace(/\n|\t|\r/g, ''); //replace special characters
+    xmlStr = xmlStr.replace(/ {1,}<|\t{1,}</g, '<'); //replace leading spaces and tabs
+    xmlStr = xmlStr.replace(/> {1,}|>\t{1,}/g, '>'); //replace trailing spaces and tabs
+    xmlStr = xmlStr.replace(/<\?[^>]*\?>/g, ''); //delete docType tags
+
+    xmlStr = replaceSelfClosingTags(xmlStr); //replace self closing tags
+    xmlStr = replaceAloneValues(xmlStr); //replace the alone tags values
+    xmlStr = replaceAttributes(xmlStr); //replace attributes
+
+    return xmlStr;
+}
+
+//************************************************************************************************************
+// Replaces all the self closing tags with attributes with another tag containing its attribute as a property.
+// The function works if the tag contains multiple attributes. 
+//
+// Example : '<tagName attrName="attrValue" />' becomes 
+//           '<tagName><attrName>attrValue</attrName></tagName>'
+//************************************************************************************************************
+function replaceSelfClosingTags(xmlStr) {
+
+    var selfClosingTags = xmlStr.match(/<[^/][^>]*\/>/g);
+
+    if (selfClosingTags) {
+        for (var i = 0; i < selfClosingTags.length; i++) {
+
+            var oldTag = selfClosingTags[i];
+            var tempTag = oldTag.substring(0, oldTag.length - 2);
+            tempTag += ">";
+
+            var tagName = oldTag.match(/[^<][\w+$]*/)[0];
+            var closingTag = "</" + tagName + ">";
+            var newTag = "<" + tagName + ">";
+
+            var attrs = tempTag.match(/(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g);
+
+            if (attrs) {
+                for(var j = 0; j < attrs.length; j++) {
+                    var attr = attrs[j];
+                    var attrName = attr.substring(0, attr.indexOf('='));
+                    var attrValue = attr.substring(attr.indexOf('"') + 1, attr.lastIndexOf('"'));
+                    
+                    newTag += "<" + attrName + ">" + attrValue + "</" + attrName + ">";
+                }
+            }
+
+            newTag += closingTag;
+
+            xmlStr = xmlStr.replace(oldTag, newTag);
+        }
+    }
+
+    return xmlStr;
+}
+
+//*************************************************************************************************
+// Replaces all the tags with attributes and a value with a new tag.
+// 
+// Example : '<tagName attrName="attrValue">tagValue</tagName>' becomes 
+//           '<tagName><attrName>attrValue</attrName><_@attribute>tagValue</_@attribute></tagName>'
+//*************************************************************************************************
+function replaceAloneValues(xmlStr) {
+ 
+    var tagsWithAttributesAndValue = xmlStr.match(/<[^\/][^>][^<]+\s+.[^<]+[=][^<]+>{1}([^<]+)/g);
+    
+    if (tagsWithAttributesAndValue) {
+        for(var i = 0; i < tagsWithAttributesAndValue.length; i++) {
+
+            var oldTag = tagsWithAttributesAndValue[i];
+            var oldTagName = oldTag.substring(0, oldTag.indexOf(">") + 1);
+            var oldTagValue = oldTag.substring(oldTag.indexOf(">") + 1);
+            
+            var newTag = oldTagName + "<_@ttribute>" + oldTagValue + "</_@ttribute>";
+            
+            xmlStr = xmlStr.replace(oldTag, newTag);
+        }    
+    }
+    
+    return xmlStr;
+}
+
+//*****************************************************************************************************************
+// Replaces all the tags with attributes with another tag containing its attribute as a property.
+// The function works if the tag contains multiple attributes.
+//
+// Example : '<tagName attrName="attrValue"></tagName>' becomes '<tagName><attrName>attrValue</attrName></tagName>'
+//*****************************************************************************************************************
+function replaceAttributes(xmlStr) {
+
+    var tagsWithAttributes = xmlStr.match(/<[^\/][^>][^<]+\s+.[^<]+[=][^<]+>/g);
+
+    if (tagsWithAttributes) {
+        for (var i = 0; i < tagsWithAttributes.length; i++) {
+           
+            var oldTag = tagsWithAttributes[i];
+            var tagName = oldTag.match(/[^<][\w+$]*/)[0];
+            var newTag = "<" + tagName + ">";
+            var attrs = oldTag.match(/(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g);
+
+            if (attrs) {
+                for(var j = 0; j < attrs.length; j++) {
+                    
+                    var attr = attrs[j];
+                    var attrName = attr.substring(0, attr.indexOf('='));
+                    var attrValue = attr.substring(attr.indexOf('"') + 1, attr.lastIndexOf('"'));
+                    
+                    newTag += "<" + attrName + ">" + attrValue + "</" + attrName + ">";
+                }
+            }
+
+            xmlStr = xmlStr.replace(oldTag, newTag);
+        }
+    }
+
+    return xmlStr;
+}
+
+},{}],"../node_modules/throttle-debounce/esm/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105761,7 +105944,986 @@ function debounce(delay, callback, options) {
     debounceMode: atBegin !== false
   });
 }
-},{}],"../dist/react-geogebra-zustand.esm.js":[function(require,module,exports) {
+},{}],"../dist/react-geogebra-zustand.cjs.development.js":[function(require,module,exports) {
+'use strict';
+
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+
+function _interopDefault(ex) {
+  return ex && _typeof(ex) === 'object' && 'default' in ex ? ex['default'] : ex;
+}
+
+var React = require('react');
+
+var create = _interopDefault(require('zustand'));
+
+var middleware = require('zustand/middleware');
+
+var produce = require('immer');
+
+var produce__default = _interopDefault(produce);
+
+var nanoid = require('nanoid');
+
+var parser = _interopDefault(require('xml2json-light'));
+
+var throttleDebounce = require('throttle-debounce');
+
+produce.enableMapSet();
+
+var immer = function immer(config) {
+  return function (set, get) {
+    return config(function (fn) {
+      return set(produce__default(fn));
+    }, get);
+  };
+};
+
+var store = function store(set, get) {
+  return {
+    isScriptLoaded: false,
+    setScriptLoaded: function setScriptLoaded(isLoaded) {
+      return set(function (state) {
+        state.isScriptLoaded = isLoaded;
+      });
+    },
+    applets: {},
+    getApplet: function getApplet(id) {
+      return Object.fromEntries(Object.entries(get().applets[id]).filter(function (_ref) {
+        var key = _ref[0];
+        return !['api', 'mouse', 'log'].includes(key);
+      }));
+    },
+    addApplet: function addApplet(applet) {
+      return set(function (state) {
+        state.applets[applet.id] = applet;
+      });
+    },
+    addElement: function addElement(_ref2) {
+      var id = _ref2.id,
+          element = _ref2.element;
+      return set(function (state) {
+        state.applets[id].elements[element.label] = element;
+      });
+    },
+    getElement: function getElement(_ref3) {
+      var id = _ref3.id,
+          label = _ref3.label;
+      return get().applets[id].elements[label];
+    },
+    updateElement: function updateElement(_ref4) {
+      var id = _ref4.id,
+          element = _ref4.element;
+      return set(function (state) {
+        state.applets[id].elements[element.label] = element;
+      });
+    },
+    removeElement: function removeElement(_ref5) {
+      var id = _ref5.id,
+          label = _ref5.label;
+      return set(function (state) {
+        delete state.applets[id].elements[label];
+      });
+    },
+    renameElement: function renameElement(_ref6) {
+      var id = _ref6.id,
+          oldLabel = _ref6.oldLabel,
+          newLabel = _ref6.newLabel;
+      return set(function (state) {
+        state.applets[id].elements[newLabel] = state.applets[id].elements[oldLabel];
+        delete state.applets[id].elements[oldLabel];
+      });
+    },
+    updateView2D: function updateView2D(_ref7) {
+      var id = _ref7.id,
+          view = _ref7.view;
+      return set(function (state) {
+        state.applets[id].views2D[view.viewNo] = view;
+      });
+    },
+    updateView3D: function updateView3D(_ref8) {
+      var id = _ref8.id,
+          view = _ref8.view;
+      return set(function (state) {
+        state.applets[id].view3D[view.viewNo] = view;
+      });
+    },
+    updateMouse: function updateMouse(_ref9) {
+      var id = _ref9.id,
+          mouse = _ref9.mouse;
+      return set(function (state) {
+        state.applets[id].mouse = mouse;
+      });
+    },
+    updateMode: function updateMode(_ref10) {
+      var id = _ref10.id,
+          mode = _ref10.mode;
+      return set(function (state) {
+        state.applets[id].mode = mode;
+      });
+    },
+    updateSelectedElements: function updateSelectedElements(_ref11) {
+      var id = _ref11.id,
+          selectedElements = _ref11.selectedElements;
+      return set(function (state) {
+        state.applets[id].selectedElements = selectedElements;
+      });
+    },
+    getSelectedElements: function getSelectedElements(_ref12) {
+      var id = _ref12.id;
+      return get().applets[id].selectedElements;
+    }
+  };
+};
+
+var useStore = /*#__PURE__*/create()( /*#__PURE__*/middleware.devtools( /*#__PURE__*/immer(store), {
+  serialize: {
+    options: {
+      map: true
+    }
+  }
+}));
+
+var GeoGebraScriptInjector = function GeoGebraScriptInjector(_ref) {
+  var _ref$scriptSource = _ref.scriptSource,
+      scriptSource = _ref$scriptSource === void 0 ? 'https://www.geogebra.org/apps/deployggb.js' : _ref$scriptSource,
+      onStartup = _ref.onStartup,
+      onLoad = _ref.onLoad,
+      onError = _ref.onError,
+      children = _ref.children;
+  var deployPromise = undefined;
+  var setScriptLoaded = useStore(function (state) {
+    return state.setScriptLoaded;
+  });
+  React.useEffect(function () {
+    var deployScriptInjector = function deployScriptInjector(res, rej) {
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = scriptSource;
+      script.async = false;
+      script.addEventListener('load', function () {
+        var geoGebra = window.GGBApplet;
+        if (onStartup) onStartup();
+        res(geoGebra);
+        setScriptLoaded(true);
+        if (onLoad) onLoad();
+      }, {
+        once: true
+      });
+      script.addEventListener('error', function (e) {
+        return rej(e);
+      });
+      document.getElementsByTagName('head')[0].appendChild(script);
+    };
+
+    if (typeof deployPromise === 'undefined') {
+      if (typeof window !== 'undefined') {
+        deployPromise = new Promise(deployScriptInjector);
+        deployPromise["catch"](function (e) {
+          if (onError) onError(e);else throw Error("Failed to download deployggb from '" + scriptSource + "' due to: " + e);
+        });
+      } else {
+        // for server side rendering
+        deployPromise = Promise.reject();
+        deployPromise["catch"](function (_) {
+          return undefined;
+        });
+      }
+    }
+  }, []);
+  return React.createElement(React.Fragment, null, children ? children : null);
+};
+
+function _extends() {
+  _extends = Object.assign ? Object.assign.bind() : function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+
+    return target;
+  };
+  return _extends.apply(this, arguments);
+}
+
+function _objectWithoutPropertiesLoose(source, excluded) {
+  if (source == null) return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i;
+
+  for (i = 0; i < sourceKeys.length; i++) {
+    key = sourceKeys[i];
+    if (excluded.indexOf(key) >= 0) continue;
+    target[key] = source[key];
+  }
+
+  return target;
+}
+/** Move */
+
+
+var modeMap = /*#__PURE__*/new Map();
+modeMap.set(0, 'MODE_MOVE');
+modeMap.set(1, 'MODE_POINT');
+modeMap.set(2, 'MODE_JOIN');
+modeMap.set(3, 'MODE_PARALLEL');
+modeMap.set(4, 'MODE_ORTHOGONAL');
+modeMap.set(5, 'MODE_INTERSECT');
+modeMap.set(6, 'MODE_DELETE');
+modeMap.set(7, 'MODE_VECTOR');
+modeMap.set(8, 'MODE_LINE_BISECTOR');
+modeMap.set(9, 'MODE_ANGULAR_BISECTOR');
+modeMap.set(10, 'MODE_CIRCLE_TWO_POINTS');
+modeMap.set(11, 'MODE_CIRCLE_THREE_POINTS');
+modeMap.set(12, 'MODE_CONIC_FIVE_POINTS');
+modeMap.set(13, 'MODE_TANGENTS');
+modeMap.set(14, 'MODE_RELATION');
+modeMap.set(15, 'MODE_SEGMENT');
+modeMap.set(16, 'MODE_POLYGON');
+modeMap.set(17, 'MODE_TEXT');
+modeMap.set(18, 'MODE_RAY');
+modeMap.set(19, 'MODE_MIDPOINT');
+modeMap.set(20, 'MODE_CIRCLE_ARC_THREE_POINTS');
+modeMap.set(21, 'MODE_CIRCLE_SECTOR_THREE_POINTS');
+modeMap.set(22, 'MODE_CIRCUMCIRCLE_ARC_THREE_POINTS');
+modeMap.set(23, 'MODE_CIRCUMCIRCLE_SECTOR_THREE_POINTS');
+modeMap.set(24, 'MODE_SEMICIRCLE');
+modeMap.set(25, 'MODE_SLIDER');
+modeMap.set(26, 'MODE_IMAGE');
+modeMap.set(27, 'MODE_SHOW_HIDE_OBJECT');
+modeMap.set(28, 'MODE_SHOW_HIDE_LABEL');
+modeMap.set(29, 'MODE_MIRROR_AT_POINT');
+modeMap.set(30, 'MODE_MIRROR_AT_LINE');
+modeMap.set(31, 'MODE_TRANSLATE_BY_VECTOR');
+modeMap.set(32, 'MODE_ROTATE_BY_ANGLE');
+modeMap.set(33, 'MODE_DILATE_FROM_POINT');
+modeMap.set(34, 'MODE_CIRCLE_POINT_RADIUS');
+modeMap.set(35, 'MODE_COPY_VISUAL_STYLE');
+modeMap.set(36, 'MODE_ANGLE');
+modeMap.set(37, 'MODE_VECTOR_FROM_POINT');
+modeMap.set(38, 'MODE_DISTANCE');
+modeMap.set(39, 'MODE_MOVE_ROTATE');
+modeMap.set(40, 'MODE_TRANSLATEVIEW');
+modeMap.set(41, 'MODE_ZOOM_IN');
+modeMap.set(42, 'MODE_ZOOM_OUT');
+modeMap.set(43, 'MODE_SELECTION_LISTENER');
+modeMap.set(44, 'MODE_POLAR_DIAMETER');
+modeMap.set(45, 'MODE_SEGMENT_FIXED');
+modeMap.set(46, 'MODE_ANGLE_FIXED');
+modeMap.set(47, 'MODE_LOCUS');
+modeMap.set(48, 'MODE_MACRO');
+modeMap.set(49, 'MODE_AREA');
+modeMap.set(50, 'MODE_SLOPE');
+modeMap.set(51, 'MODE_REGULAR_POLYGON');
+modeMap.set(52, 'MODE_SHOW_HIDE_CHECKBOX');
+modeMap.set(53, 'MODE_COMPASSES');
+modeMap.set(54, 'MODE_MIRROR_AT_CIRCLE');
+modeMap.set(55, 'MODE_ELLIPSE_THREE_POINTS');
+modeMap.set(56, 'MODE_HYPERBOLA_THREE_POINTS');
+modeMap.set(57, 'MODE_PARABOLA');
+modeMap.set(58, 'MODE_FITLINE');
+modeMap.set(59, 'MODE_RECORD_TO_SPREADSHEET');
+modeMap.set(60, 'MODE_BUTTON_ACTION');
+modeMap.set(61, 'MODE_TEXTFIELD_ACTION');
+modeMap.set(62, 'MODE_PEN');
+modeMap.set(63, 'MODE_VISUAL_STYLE');
+modeMap.set(64, 'MODE_RIGID_POLYGON');
+modeMap.set(65, 'MODE_POLYLINE');
+modeMap.set(66, 'MODE_PROBABILITY_CALCULATOR');
+modeMap.set(67, 'MODE_ATTACH_DETACH');
+modeMap.set(68, 'MODE_FUNCTION_INSPECTOR');
+modeMap.set(69, 'MODE_INTERSECTION_CURVE');
+modeMap.set(70, 'MODE_VECTOR_POLYGON');
+modeMap.set(71, 'MODE_CREATE_LIST');
+modeMap.set(72, 'MODE_COMPLEX_NUMBER');
+modeMap.set(73, 'MODE_FREEHAND_SHAPE');
+modeMap.set(74, 'MODE_FREEHAND_FUNCTION');
+modeMap.set(75, 'MODE_EXTREMUM');
+modeMap.set(76, 'MODE_ROOTS');
+modeMap.set(77, 'MODE_SELECT');
+modeMap.set(78, 'MODE_SELECT_MOW');
+modeMap.set(79, 'MODE_GRASPABLE_MATH');
+modeMap.set(501, 'MODE_POINT_ON_OBJECT');
+modeMap.set(502, 'MODE_VIEW_IN_FRONT_OF');
+modeMap.set(510, 'MODE_PLANE_THREE_POINTS');
+modeMap.set(511, 'MODE_PLANE');
+modeMap.set(512, 'MODE_ORTHOGONAL_PLANE');
+modeMap.set(513, 'MODE_PARALLEL_PLANE');
+modeMap.set(514, 'MODE_ORTHOGONAL_THREE_D');
+modeMap.set(520, 'MODE_SPHERE_POINT_RADIUS');
+modeMap.set(521, 'MODE_SPHERE_TWO_POINTS');
+modeMap.set(522, 'MODE_CONE_TWO_POINTS_RADIUS');
+modeMap.set(523, 'MODE_CYLINDER_TWO_POINTS_RADIUS');
+modeMap.set(531, 'MODE_PRISM');
+modeMap.set(532, 'MODE_EXTRUSION');
+modeMap.set(533, 'MODE_PYRAMID');
+modeMap.set(534, 'MODE_CONIFY');
+modeMap.set(535, 'MODE_NET');
+modeMap.set(536, 'MODE_CUBE');
+modeMap.set(537, 'MODE_TETRAHEDRON');
+modeMap.set(538, 'MODE_SURFACE_OF_REVOLUTION');
+modeMap.set(540, 'MODE_ROTATEVIEW');
+modeMap.set(550, 'MODE_CIRCLE_POINT_RADIUS_DIRECTION');
+modeMap.set(551, 'MODE_CIRCLE_AXIS_POINT');
+modeMap.set(560, 'MODE_VOLUME');
+modeMap.set(570, 'MODE_ROTATE_AROUND_LINE');
+modeMap.set(571, 'MODE_MIRROR_AT_PLANE');
+modeMap.set(1001, 'MODE_CAS_EVALUATE');
+modeMap.set(1002, 'MODE_CAS_NUMERIC');
+modeMap.set(1003, 'MODE_CAS_KEEP_INPUT');
+modeMap.set(1004, 'MODE_CAS_EXPAND');
+modeMap.set(1005, 'MODE_CAS_FACTOR');
+modeMap.set(1006, 'MODE_CAS_SUBSTITUTE');
+modeMap.set(1007, 'MODE_CAS_SOLVE');
+modeMap.set(1008, 'MODE_CAS_DERIVATIVE');
+modeMap.set(1009, 'MODE_CAS_INTEGRAL');
+modeMap.set(1010, 'MODE_CAS_NUMERICAL_SOLVE');
+modeMap.set(2001, 'MODE_SPREADSHEET_CREATE_LIST');
+modeMap.set(2002, 'MODE_SPREADSHEET_CREATE_MATRIX');
+modeMap.set(2003, 'MODE_SPREADSHEET_CREATE_LISTOFPOINTS');
+modeMap.set(2004, 'MODE_SPREADSHEET_CREATE_TABLETEXT');
+modeMap.set(2005, 'MODE_SPREADSHEET_CREATE_POLYLINE');
+modeMap.set(2020, 'MODE_SPREADSHEET_ONEVARSTATS');
+modeMap.set(2021, 'MODE_SPREADSHEET_TWOVARSTATS');
+modeMap.set(2022, 'MODE_SPREADSHEET_MULTIVARSTATS');
+modeMap.set(2030, 'MODE_SPREADSHEET_SORT');
+modeMap.set(2031, 'MODE_SPREADSHEET_SORT_AZ');
+modeMap.set(2032, 'MODE_SPREADSHEET_SORT_ZA');
+modeMap.set(2040, 'MODE_SPREADSHEET_SUM');
+modeMap.set(2041, 'MODE_SPREADSHEET_AVERAGE');
+modeMap.set(2042, 'MODE_SPREADSHEET_COUNT');
+modeMap.set(2043, 'MODE_SPREADSHEET_MIN');
+modeMap.set(2044, 'MODE_SPREADSHEET_MAX');
+modeMap.set(101, 'MODE_SHAPE_LINE');
+modeMap.set(102, 'MODE_SHAPE_TRIANGLE');
+modeMap.set(103, 'MODE_SHAPE_SQUARE');
+modeMap.set(104, 'MODE_SHAPE_RECTANGLE');
+modeMap.set(105, 'MODE_SHAPE_RECTANGLE_ROUND_EDGES');
+modeMap.set(106, 'MODE_SHAPE_PENTAGON');
+modeMap.set(107, 'MODE_SHAPE_FREEFORM');
+modeMap.set(108, 'MODE_SHAPE_CIRCLE');
+modeMap.set(109, 'MODE_SHAPE_ELLIPSE');
+modeMap.set(110, 'MODE_ERASER');
+modeMap.set(111, 'MODE_HIGHLIGHTER');
+modeMap.set(112, 'MODE_PEN_PANEL');
+modeMap.set(113, 'MODE_TOOLS_PANEL');
+modeMap.set(114, 'MODE_MEDIA_PANEL');
+modeMap.set(115, 'MODE_VIDEO');
+modeMap.set(116, 'MODE_AUDIO');
+modeMap.set(117, 'MODE_CALCULATOR');
+modeMap.set(118, 'MODE_CAMERA');
+modeMap.set(119, 'MODE_PDF');
+modeMap.set(120, 'MODE_EXTENSION');
+modeMap.set(121, 'MODE_MEDIA_TEXT');
+modeMap.set(122, 'MODE_MASK');
+modeMap.set(123, 'MODE_TABLE');
+modeMap.set(124, 'MODE_EQUATION');
+modeMap.set(125, 'MODE_H5P');
+modeMap.set(126, 'MODE_MIND_MAP');
+modeMap.set(127, 'MODE_RULER');
+modeMap.set(128, 'MODE_PROTRACTOR');
+modeMap.set(100001, 'MACRO_MODE_ID_OFFSET');
+var PanelNames;
+
+(function (PanelNames) {
+  PanelNames["VIEW_GRAPHICS"] = "Graphics";
+  PanelNames["VIEW_GRAPHICS_2"] = "Graphics 2";
+  PanelNames["VIEW_3D_GRAPHICS"] = "3D Graphics";
+  PanelNames["VIEW_ALGEBRA"] = "Algebra";
+  PanelNames["VIEW_SPREADSHEET"] = "Spreadsheet";
+  PanelNames["VIEW_CAS"] = "CAS";
+  PanelNames["VIEW_CONSTRUCTION_PROTOCOL"] = "Construction Protocol";
+  PanelNames["VIEW_PROBABILITY_CALCULATOR"] = "Probability Calculator";
+})(PanelNames || (PanelNames = {}));
+
+var viewNoToViewXMLNo = function viewNoToViewXMLNo(viewNo) {
+  return viewNo == 2 ? 16 : viewNo;
+};
+
+var viewNamesMap = /*#__PURE__*/new Map(); //1-> Graphics 1, 2->Algebra, 4->Spreadsheet, 8->CAS, 16->Graphics 2, 512->Graphics3D
+//Graphic2 = 16 in XML view
+
+viewNamesMap.set(1, PanelNames.VIEW_GRAPHICS);
+viewNamesMap.set(2, PanelNames.VIEW_ALGEBRA);
+viewNamesMap.set(4, PanelNames.VIEW_SPREADSHEET);
+viewNamesMap.set(8, PanelNames.VIEW_CAS);
+viewNamesMap.set(16, PanelNames.VIEW_GRAPHICS_2);
+viewNamesMap.set(32, PanelNames.VIEW_CONSTRUCTION_PROTOCOL);
+viewNamesMap.set(64, PanelNames.VIEW_PROBABILITY_CALCULATOR);
+viewNamesMap.set(512, PanelNames.VIEW_3D_GRAPHICS);
+
+var geogebraElementFromApi = function geogebraElementFromApi(label, api) {
+  var objectType = api.getObjectType(label);
+  var coordinates = undefined;
+
+  switch (objectType) {
+    case 'point':
+      coordinates = {
+        x: api.getXcoord(label),
+        y: api.getYcoord(label),
+        z: api.getZcoord(label)
+      };
+      break;
+  }
+
+  var element = {
+    label: label,
+    coordinates: coordinates,
+    value: api.getValue(label),
+    color: api.getColor(label),
+    isVisible: api.getVisible(label),
+    valueString: api.getValueString(label),
+    definitionString: api.getDefinitionString(label),
+    commandString: api.getCommandString(label),
+    LaTeXString: api.getLaTeXString(label),
+    objectType: objectType,
+    isExisting: api.exists(label),
+    isDefined: api.isDefined(label),
+    layer: api.getLayer(label),
+    lineStyle: api.getLineStyle(label),
+    lineThickness: api.getLineThickness(label),
+    pointStyle: api.getPointStyle(label),
+    pointSize: api.getPointSize(label),
+    filling: api.getFilling(label),
+    caption: api.getCaption(label),
+    labelStyle: api.getLabelStyle(label),
+    isLabelVisible: api.getLabelVisible(label),
+    isIndependent: api.isIndependent(label),
+    isMoveable: api.isMoveable(label),
+    wasDragged: false,
+    xml: parser.xml2json(api.getXML(label))['element'] || {}
+  };
+  return element;
+};
+
+var initializeElements = function initializeElements(app, addElement) {
+  var id = app.id,
+      api = app.api;
+  var labels = api.getAllObjectNames();
+  labels.map(function (label) {
+    var element = geogebraElementFromApi(label, api);
+    addElement({
+      id: id,
+      element: element
+    });
+  });
+};
+
+var addListener = function addListener(app, storeMethods) {
+  return function (label) {
+    if (!label) return;
+    var id = app.id,
+        api = app.api,
+        log = app.log;
+    var addElement = storeMethods.addElement;
+    var element = geogebraElementFromApi(label, api);
+    addElement({
+      id: id,
+      element: element
+    });
+    log(label + ' is added'); //console.log(api.getXML(label));
+    //console.log(api.getCommandString(label));
+  };
+};
+
+var updateListener = function updateListener(app, storeMethods) {
+  return function (label) {
+    var id = app.id,
+        api = app.api;
+    var updateElement = storeMethods.updateElement;
+    var element = geogebraElementFromApi(label, api);
+    updateElement({
+      id: id,
+      element: element
+    });
+  };
+};
+
+var removeListener = function removeListener(app, storeMethods) {
+  return function (label) {
+    var id = app.id;
+    var removeElement = storeMethods.removeElement;
+    removeElement({
+      id: id,
+      label: label
+    });
+  };
+};
+
+var renameListener = function renameListener(app, storeMethods) {
+  return function (oldLabel, newLabel) {
+    var id = app.id,
+        log = app.log;
+    var renameElement = storeMethods.renameElement;
+    log('old: ' + oldLabel + ' new: ' + newLabel);
+    renameElement({
+      id: id,
+      oldLabel: oldLabel,
+      newLabel: newLabel
+    });
+  };
+};
+
+var clientListener = function clientListener(app, storeMethods) {
+  return function (event) {
+    var _view$xMin, _view$xMax, _view$yMin, _view$yMax, _view$scale;
+
+    var id = app.id,
+        api = app.api,
+        log = app.log;
+    var updateView2D = storeMethods.updateView2D,
+        updateView3D = storeMethods.updateView3D,
+        updateMouse = storeMethods.updateMouse,
+        updateMode = storeMethods.updateMode,
+        updateElement = storeMethods.updateElement,
+        updateSelectedElements = storeMethods.updateSelectedElements,
+        getSelectedElements = storeMethods.getSelectedElements,
+        getElement = storeMethods.getElement;
+    var eventName = event[0],
+        eventInfo1 = event[1],
+        eventInfo2 = event[2];
+
+    switch (eventName) {
+      case 'updateStyle':
+        var label = eventInfo1;
+        var element = geogebraElementFromApi(label, api);
+        log(element.label + ' has changed style');
+        updateElement({
+          id: id,
+          element: element
+        }); //evalXML(xapi2, xml);
+
+        break;
+
+      case 'setMode':
+        var mode = {
+          number: eventInfo2,
+          name: modeMap.get(parseInt(eventInfo2)) || ''
+        };
+        updateMode({
+          id: id,
+          mode: mode
+        });
+        log('setMode(' + mode.number + ') = ' + mode.name); //xapi2.setMode(eventInfo2);
+
+        break;
+
+      case 'deselect':
+        log('deselect ' + JSON.stringify(event)); //unregisterListeners();
+        //xapi2.evalCommand('SelectObjects[]');
+        //registerListeners();
+
+        updateSelectedElements({
+          id: id,
+          selectedElements: []
+        });
+        break;
+
+      case 'select':
+        log('select ' + JSON.stringify(event));
+        var elementLabel = eventInfo1;
+        var selectedElements = getSelectedElements({
+          id: id
+        });
+        var selectedElement = getElement({
+          id: id,
+          label: elementLabel
+        }); //geogebraElementFromApi(elementLabel, api);
+
+        updateSelectedElements({
+          id: id,
+          selectedElements: [].concat(selectedElements, [selectedElement])
+        }); //unregisterListeners();
+        //xapi2.evalCommand("SelectObjects[" + eventInfo1 + "]");
+        //registerListeners();
+
+        break;
+
+      case 'mouseDown':
+        //log('Mouse down');
+        var hits = event.hits.length > 0 ? event.hits.join(' ') : '(none)';
+        log(eventName + " in view " + viewNamesMap.get(parseInt(event.viewNo)) + " at (" + event.x + "," + event.y + (event.z ? ', ' + event.z : '') + ") hitting objects: " + hits);
+        var mouse = {
+          viewNo: event.viewNo,
+          viewName: viewNamesMap.get(viewNoToViewXMLNo(parseInt(event.viewNo))) || '',
+          x: event.x,
+          y: event.y,
+          hits: event.hits
+        };
+        updateMouse({
+          id: id,
+          mouse: mouse
+        });
+        break;
+
+      case 'addPolygon':
+        log('****** POLYGON START ******');
+        break;
+
+      case 'addPolygonComplete':
+        log('****** POLYGON ' + eventName + ' FINISHED ******');
+        break;
+
+      case 'viewPropertiesChanged':
+        log('viewPropertiesChanged ' + JSON.stringify(event));
+        break;
+
+      case 'viewChanged2D':
+        //log('viewChanged2D ' + JSON.stringify(event));
+        var view = {
+          viewNo: event.viewNo,
+          viewName: viewNamesMap.get(viewNoToViewXMLNo(parseInt(event.viewNo))) || '',
+          scale: event.scale,
+          xZero: event.xZero,
+          yZero: event.yZero,
+          yscale: event.yscale
+        };
+        var props = JSON.parse(api.getViewProperties(event.viewNo));
+        var xMax = props.xMin + props.width * props.invXscale;
+        var yMax = props.yMin + props.height * props.invYscale;
+        view.invXscale = props.invXscale;
+        view.invYscale = props.invYscale;
+        view.xMin = props.xMin;
+        view.yMin = props.yMin;
+        view.xMax = xMax;
+        view.yMax = yMax;
+        view.width = props.width;
+        view.height = props.height;
+        view.left = props.left;
+        view.top = props.top;
+        updateView2D({
+          id: id,
+          view: view
+        });
+        log("xMin: " + ((_view$xMin = view.xMin) == null ? void 0 : _view$xMin.toFixed(2)) + ", xMax: " + ((_view$xMax = view.xMax) == null ? void 0 : _view$xMax.toFixed(2)) + ", yMin: " + ((_view$yMin = view.yMin) == null ? void 0 : _view$yMin.toFixed(2)) + ", yMax: " + ((_view$yMax = view.yMax) == null ? void 0 : _view$yMax.toFixed(2)) + ", scale: " + ((_view$scale = view.scale) == null ? void 0 : _view$scale.toFixed(2))); //xapi2.setCoordSystem(xMin, xMax, yMin, yMax);
+
+        break;
+
+      case 'viewChanged3D':
+        var view3D = {
+          viewNo: event.viewNo,
+          viewName: viewNamesMap.get(viewNoToViewXMLNo(parseInt(event.viewNo))) || '',
+          scale: event.scale,
+          xZero: event.xZero,
+          yZero: event.yZero,
+          zZero: event.zZero,
+          yscale: event.yscale,
+          zscale: event.zscale,
+          xAngle: event.xAngle,
+          zAngle: event.zAngle
+        };
+        updateView3D({
+          id: id,
+          view: view3D
+        });
+        break;
+
+      case 'dragEnd':
+        var draggedElementLabel = eventInfo1;
+        log('dragEnd ' + JSON.stringify(eventInfo1));
+        var draggedElement = geogebraElementFromApi(draggedElementLabel, api);
+        if (draggedElement.wasDragged) break;
+        draggedElement.wasDragged = true;
+        updateElement({
+          id: id,
+          element: draggedElement
+        });
+        break;
+
+      case 'showStyleBar':
+        log('showStyleBar');
+        break;
+
+      case 'editorStart':
+        log('editorStart');
+        break;
+
+      case 'editorKeyTyped':
+        console.log(event);
+
+        if (event.label) {
+          console.log('Event from Input Box', event, event.label); // Input Box
+
+          var state = api.getInputBoxState(event.label);
+          console.log('State from Input Box: ' + state); //xapi2.setInputBoxState(state, event.label);
+        } else {
+          // Algebra View editor
+          var state = api.getEditorState();
+          console.log(state, eventInfo1);
+          console.log(eventInfo1); //console.log(xapi2.getEditorState());
+          //xapi2.setEditorState(state);
+        }
+
+        break;
+
+      case 'editorStop':
+        console.log('editorStop: ' + event); //xapi2.setEditorState({ content: '' });
+
+        break;
+
+      case 'perspectiveChange':
+        console.log('perspectiveChange');
+        break;
+
+      case 'dropdownOpened':
+        console.log('dropdownOpened, label =  ' + event.argument);
+        break;
+
+      case 'dropdownItemFocused':
+        console.log('dropdownItemFocused, label = ' + event.argument + ' index = ' + event.index);
+        break;
+
+      case 'dropdownClosed':
+        console.log('dropdownClosed, label = ' + event.argument + ' index = ' + event.index);
+        break;
+
+      case 'renameComplete':
+        console.log('rename ');
+        console.log(event);
+        break;
+
+      default:
+        console.error('unhandled event ' + eventName + ' ' + event);
+    }
+  };
+};
+
+var registerListeners = function registerListeners(app, storeMethods) {
+  var api = app.api;
+  api.registerUpdateListener(updateListener(app, storeMethods));
+  api.registerRemoveListener(removeListener(app, storeMethods));
+  api.registerRenameListener(renameListener(app, storeMethods));
+  api.registerAddListener(addListener(app, storeMethods));
+  api.registerClientListener(clientListener(app, storeMethods));
+};
+
+var _excluded = ["id", "appletOnLoad", "onLog", "width", "height"];
+
+var Geogebra = function Geogebra(props) {
+  var isScriptLoaded = useStore(function (state) {
+    return state.isScriptLoaded;
+  });
+  var applets = useStore(function (state) {
+    return state.applets;
+  });
+  var addApplet = useStore(function (state) {
+    return state.addApplet;
+  });
+
+  var _useStore = useStore(),
+      addElement = _useStore.addElement,
+      getElement = _useStore.getElement,
+      updateElement = _useStore.updateElement,
+      removeElement = _useStore.removeElement,
+      updateView2D = _useStore.updateView2D,
+      updateView3D = _useStore.updateView3D,
+      updateMouse = _useStore.updateMouse,
+      updateMode = _useStore.updateMode,
+      renameElement = _useStore.renameElement,
+      updateSelectedElements = _useStore.updateSelectedElements,
+      getSelectedElements = _useStore.getSelectedElements;
+
+  var id = props.id,
+      _appletOnLoad = props.appletOnLoad,
+      onLog = props.onLog,
+      width = props.width,
+      height = props.height,
+      rest = _objectWithoutPropertiesLoose(props, _excluded);
+
+  var _React$useState = React.useState(id + "-" + nanoid.nanoid(8)),
+      memorizedId = _React$useState[0];
+
+  id = memorizedId;
+
+  var params = _extends({
+    id: id,
+    appletOnLoad: function appletOnLoad(api) {
+      var applet = {
+        id: memorizedId,
+        api: api,
+        elements: {},
+        views2D: {},
+        view3D: {},
+        log: onLog ? onLog : console.log,
+        mouse: {
+          viewNo: 0,
+          viewName: '',
+          x: 0,
+          y: 0,
+          hits: []
+        },
+        mode: {
+          number: -1,
+          name: ''
+        },
+        selectedElements: []
+      };
+      var storeMethods = {
+        addElement: addElement,
+        getElement: getElement,
+        updateElement: updateElement,
+        removeElement: removeElement,
+        renameElement: renameElement,
+        updateView2D: throttleDebounce.throttle(50, updateView2D),
+        updateView3D: throttleDebounce.throttle(50, updateView3D),
+        updateMouse: updateMouse,
+        updateMode: updateMode,
+        updateSelectedElements: updateSelectedElements,
+        getSelectedElements: getSelectedElements
+      };
+      addApplet(applet);
+      initializeElements(applet, storeMethods.addElement);
+      registerListeners(applet, storeMethods);
+      if (_appletOnLoad) _appletOnLoad(api);
+    }
+  }, rest);
+
+  React.useEffect(function () {
+    if (!width || !height) return;
+    var applet = applets[memorizedId];
+    if (typeof applet === 'undefined') return;
+    applet.api.setSize(width, height);
+  }, [width, height]);
+  React.useEffect(function () {
+    if (!isScriptLoaded) return;
+    if (typeof window.GGBApplet === 'undefined') return;
+    var views = {
+      is3D: 0,
+      AV: 1,
+      SV: 0,
+      CV: 0,
+      EV2: 0,
+      CP: 0,
+      PC: 0,
+      DA: 0,
+      FI: 0,
+      macro: 0
+    };
+    var applet = new window.GGBApplet(params, '5.0', views);
+    var cb;
+    var urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.has('cb')) {
+      cb = urlParams.get('cb');
+      applet.setHTML5Codebase('https://apps-builds.s3-eu-central-1.amazonaws.com/geogebra/branches/' + cb + '/web3d');
+    }
+
+    applet.inject(params.id);
+  }, [isScriptLoaded]);
+  return React.createElement("div", {
+    id: params.id
+  });
+};
+
+Geogebra.defaultProps = {
+  id: 'ggbApplet',
+  width: 800,
+  height: 400,
+  showMenuBar: true,
+  showAlgebraInput: true,
+  showToolBar: true,
+  customToolBar: '0 39 73 62 | 1 501 67 , 5 19 , 72 75 76 | 2 15 45 , 18 65 , 7 37 | 4 3 8 9 , 13 44 , 58 , 47 | 16 51 64 , 70 | 10 34 53 11 , 24  20 22 , 21 23 | 55 56 57 , 12 | 36 46 , 38 49  50 , 71  14  68 | 30 29 54 32 31 33 | 25 17 26 60 52 61 | 40 41 42 , 27 28 35 , 6',
+  showToolBarHelp: false,
+  showResetIcon: false,
+  enableLabelDrags: false,
+  enableShiftDragZoom: true,
+  enableRightClick: false,
+  errorDialogsActive: false,
+  useBrowserForJS: true,
+  allowStyleBar: false,
+  preventFocus: false,
+  showZoomButtons: true,
+  capturingThreshold: 3,
+  // add code here to run when the applet starts
+  appletOnLoad: function appletOnLoad(_) {},
+  showFullscreenButton: true,
+  scale: 1,
+  disableAutoScale: false,
+  allowUpscale: false,
+  clickToLoad: false,
+  appName: 'classic',
+  showSuggestionButtons: true,
+  buttonRounding: 0.7,
+  buttonShadows: false,
+  language: 'de'
+};
+
+var isSubset = /*#__PURE__*/function (_isSubset) {
+  function isSubset(_x, _x2) {
+    return _isSubset.apply(this, arguments);
+  }
+
+  isSubset.toString = function () {
+    return _isSubset.toString();
+  };
+
+  return isSubset;
+}(function (superset, subset) {
+  if (_typeof(superset) !== 'object' || superset === null || _typeof(subset) !== 'object' || subset === null) return false;
+  return Object.keys(subset).every(function (key) {
+    if (!superset.propertyIsEnumerable(key)) return false;
+    var subsetItem = subset[key];
+    var supersetItem = superset[key];
+    if (_typeof(subsetItem) === 'object' && subsetItem !== null ? !isSubset(supersetItem, subsetItem) : typeof supersetItem === 'string' && typeof subsetItem === 'string' ? encodeURI(supersetItem) !== encodeURI(subsetItem) : supersetItem !== subsetItem) return false;
+    return true;
+  });
+});
+
+function isDeepSubset(superset, subset) {
+  if (typeof superset === 'string') {
+    return superset.indexOf(subset) >= 0;
+  }
+
+  if (Array.isArray(superset) && Array.isArray(subset)) {
+    var res = isArraySubsequence(superset, subset);
+    return res;
+  }
+
+  return isDeepSubsetReal(superset, subset);
+}
+
+function isArraySubsequence(sequence, sub) {
+  return isDeepSubsetReal(sequence, sub) || sequence.length > 0 && isArraySubsequence(sequence.slice(1), sub);
+}
+
+function isDeepSubsetReal(superset, subset) {
+  if (typeof superset === 'undefined' || !superset) return false;
+  if (isSubset(superset, subset)) return true;
+
+  try {
+    var x = Object.keys(superset).some(function (key) {
+      return isDeepSubset(superset[key], subset);
+    });
+    return x;
+  } catch (error) {
+    return false;
+  }
+}
+
+var GeoGebraScriptInjector$1 = GeoGebraScriptInjector;
+var GeoGebra = Geogebra;
+var useStore$1 = useStore;
+var immer$1 = immer;
+exports.GeoGebra = GeoGebra;
+exports.GeoGebraScriptInjector = GeoGebraScriptInjector$1;
+exports.immer = immer$1;
+exports.isDeepSubset = isDeepSubset;
+exports.useStore = useStore$1;
+},{"react":"../node_modules/react/index.js","zustand":"../node_modules/zustand/index.js","zustand/middleware":"../node_modules/zustand/middleware.js","immer":"../node_modules/immer/dist/immer.esm.js","nanoid":"../node_modules/nanoid/index.browser.js","xml2json-light":"../node_modules/xml2json-light/xml2json.js","throttle-debounce":"../node_modules/throttle-debounce/esm/index.js"}],"../dist/index.js":[function(require,module,exports) {
+'use strict';
+
+if ("development" === 'production') {
+  module.exports = require('./react-geogebra-zustand.cjs.production.min.js');
+} else {
+  module.exports = require('./react-geogebra-zustand.cjs.development.js');
+}
+},{"./react-geogebra-zustand.cjs.development.js":"../dist/react-geogebra-zustand.cjs.development.js"}],"../dist/react-geogebra-zustand.esm.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105780,6 +106942,8 @@ var _middleware = require("zustand/middleware");
 var _immer = _interopRequireWildcard(require("immer"));
 
 var _nanoid = require("nanoid");
+
+var _xml2jsonLight = _interopRequireDefault(require("xml2json-light"));
 
 var _throttleDebounce = require("throttle-debounce");
 
@@ -105863,29 +107027,36 @@ var store = function store(set, get) {
         state.applets[id].views2D[view.viewNo] = view;
       });
     },
-    updateMouse: function updateMouse(_ref8) {
+    updateView3D: function updateView3D(_ref8) {
       var id = _ref8.id,
-          mouse = _ref8.mouse;
+          view = _ref8.view;
+      return set(function (state) {
+        state.applets[id].view3D[view.viewNo] = view;
+      });
+    },
+    updateMouse: function updateMouse(_ref9) {
+      var id = _ref9.id,
+          mouse = _ref9.mouse;
       return set(function (state) {
         state.applets[id].mouse = mouse;
       });
     },
-    updateMode: function updateMode(_ref9) {
-      var id = _ref9.id,
-          mode = _ref9.mode;
+    updateMode: function updateMode(_ref10) {
+      var id = _ref10.id,
+          mode = _ref10.mode;
       return set(function (state) {
         state.applets[id].mode = mode;
       });
     },
-    updateSelectedElements: function updateSelectedElements(_ref10) {
-      var id = _ref10.id,
-          selectedElements = _ref10.selectedElements;
+    updateSelectedElements: function updateSelectedElements(_ref11) {
+      var id = _ref11.id,
+          selectedElements = _ref11.selectedElements;
       return set(function (state) {
         state.applets[id].selectedElements = selectedElements;
       });
     },
-    getSelectedElements: function getSelectedElements(_ref11) {
-      var id = _ref11.id;
+    getSelectedElements: function getSelectedElements(_ref12) {
+      var id = _ref12.id;
       return get().applets[id].selectedElements;
     }
   };
@@ -106211,7 +107382,8 @@ var geogebraElementFromApi = function geogebraElementFromApi(label, api) {
     isLabelVisible: api.getLabelVisible(label),
     isIndependent: api.isIndependent(label),
     isMoveable: api.isMoveable(label),
-    xml: api.getXML(label)
+    wasDragged: false,
+    xml: _xml2jsonLight.default.xml2json(api.getXML(label))['element'] || {}
   };
   return element;
 };
@@ -106292,6 +107464,7 @@ var clientListener = function clientListener(app, storeMethods) {
         api = app.api,
         log = app.log;
     var updateView2D = storeMethods.updateView2D,
+        updateView3D = storeMethods.updateView3D,
         updateMouse = storeMethods.updateMouse,
         updateMode = storeMethods.updateMode,
         updateElement = storeMethods.updateElement,
@@ -106361,7 +107534,7 @@ var clientListener = function clientListener(app, storeMethods) {
       case 'mouseDown':
         //log('Mouse down');
         var hits = event.hits.length > 0 ? event.hits.join(' ') : '(none)';
-        log(eventName + ' in view ' + event.viewNo + ' at (' + event.x + ', ' + event.y + ') hitting objects: ' + hits);
+        log(eventName + " in view " + viewNamesMap.get(parseInt(event.viewNo)) + " at (" + event.x + "," + event.y + (event.z ? ', ' + event.z : '') + ") hitting objects: " + hits);
         var mouse = {
           viewNo: event.viewNo,
           viewName: viewNamesMap.get(viewNoToViewXMLNo(parseInt(event.viewNo))) || '',
@@ -106418,8 +107591,35 @@ var clientListener = function clientListener(app, storeMethods) {
 
         break;
 
+      case 'viewChanged3D':
+        var view3D = {
+          viewNo: event.viewNo,
+          viewName: viewNamesMap.get(viewNoToViewXMLNo(parseInt(event.viewNo))) || '',
+          scale: event.scale,
+          xZero: event.xZero,
+          yZero: event.yZero,
+          zZero: event.zZero,
+          yscale: event.yscale,
+          zscale: event.zscale,
+          xAngle: event.xAngle,
+          zAngle: event.zAngle
+        };
+        updateView3D({
+          id: id,
+          view: view3D
+        });
+        break;
+
       case 'dragEnd':
+        var draggedElementLabel = eventInfo1;
         log('dragEnd ' + JSON.stringify(eventInfo1));
+        var draggedElement = geogebraElementFromApi(draggedElementLabel, api);
+        if (draggedElement.wasDragged) break;
+        draggedElement.wasDragged = true;
+        updateElement({
+          id: id,
+          element: draggedElement
+        });
         break;
 
       case 'showStyleBar':
@@ -106508,6 +107708,7 @@ var Geogebra = function Geogebra(props) {
       updateElement = _useStore.updateElement,
       removeElement = _useStore.removeElement,
       updateView2D = _useStore.updateView2D,
+      updateView3D = _useStore.updateView3D,
       updateMouse = _useStore.updateMouse,
       updateMode = _useStore.updateMode,
       renameElement = _useStore.renameElement,
@@ -106534,6 +107735,7 @@ var Geogebra = function Geogebra(props) {
         api: api,
         elements: {},
         views2D: {},
+        view3D: {},
         log: onLog ? onLog : console.log,
         mouse: {
           viewNo: 0,
@@ -106555,6 +107757,7 @@ var Geogebra = function Geogebra(props) {
         removeElement: removeElement,
         renameElement: renameElement,
         updateView2D: (0, _throttleDebounce.throttle)(50, updateView2D),
+        updateView3D: (0, _throttleDebounce.throttle)(50, updateView3D),
         updateMouse: updateMouse,
         updateMode: updateMode,
         updateSelectedElements: updateSelectedElements,
@@ -106697,7 +107900,7 @@ var useStore$1 = useStore;
 exports.useStore = useStore$1;
 var immer$1 = immer;
 exports.immer = immer$1;
-},{"react":"../node_modules/react/index.js","zustand":"../node_modules/zustand/index.js","zustand/middleware":"../node_modules/zustand/middleware.js","immer":"../node_modules/immer/dist/immer.esm.js","nanoid":"../node_modules/nanoid/index.browser.js","throttle-debounce":"../node_modules/throttle-debounce/esm/index.js"}],"src/store/index.tsx":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","zustand":"../node_modules/zustand/index.js","zustand/middleware":"../node_modules/zustand/middleware.js","immer":"../node_modules/immer/dist/immer.esm.js","nanoid":"../node_modules/nanoid/index.browser.js","xml2json-light":"../node_modules/xml2json-light/xml2json.js","throttle-debounce":"../node_modules/throttle-debounce/esm/index.js"}],"src/store/index.tsx":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -106720,40 +107923,80 @@ var _1 = require("../../../.");
 var store = function store(set, get) {
   return {
     tasks: {
+      task0: {
+        id: 'task0',
+        isDone: false,
+        isAid: true,
+        text: 'Ändere die Position des Punktes Q.',
+        subset: {
+          label: 'Q',
+          wasDragged: true,
+          objectType: 'point'
+        }
+      },
       task1: {
         id: 'task1',
         isDone: false,
         isAid: true,
-        text: 'Wähle die Geodreieck-Variante 2 aus.',
+        text: 'Schau dir die Hilfe an',
         subset: {
-          label: 'Bild1',
-          isVisible: true,
-          objectType: 'image'
+          label: 'e1',
+          value: 1,
+          objectType: 'boolean'
         }
       },
       task2: {
         id: 'task2',
         isDone: false,
         isAid: true,
-        text: 'Lege den Nullpunkt des GeoDreiecks auf den Punkt P.',
+        text: 'Lass dir die Kurve anzeigen.',
         subset: {
-          label: 'GD_{0}',
-          coordinates: {
-            x: 0,
-            y: 2
-          },
-          objectType: 'point'
+          label: 'm_{1}',
+          objectType: 'boolean',
+          value: 1
+        }
+      },
+      task4: {
+        id: 'task4',
+        isDone: false,
+        isAid: true,
+        text: 'Aktiviere die Spur.',
+        subset: {
+          label: 'F',
+          objectType: 'point',
+          xml: {
+            trace: {
+              val: 'true'
+            }
+          }
         }
       },
       task3: {
         id: 'task3',
         isDone: false,
         isAid: false,
-        text: 'Die Fehlerzahl ist 0.',
+        text: 'Bewege Q auf eine Position, so dass die Sehnenlänge maximal wird.',
         subset: {
-          label: 'Text4',
-          valueString: 'Fehler: 0 ',
-          objectType: 'text'
+          label: 'Q',
+          objectType: 'point',
+          coordinates: {
+            x: 13.006148224686648,
+            y: 5.848849140798627
+          }
+        }
+      },
+      task5: {
+        id: 'task5',
+        isDone: false,
+        isAid: false,
+        text: 'Bewege Q auf eine Position, so dass die Sehnenlänge maximal wird.',
+        subset: {
+          label: 'Q',
+          objectType: 'point',
+          coordinates: {
+            x: 11,
+            y: 9.302301718402752
+          }
         }
       }
     },
@@ -117599,11 +118842,10 @@ exports.Observer = function (_a) {
   }, [applets, tasks]);
   return React.createElement(react_1.Flex, {
     bg: "white",
-    maxWidth: "100vw",
-    p: 2,
     rounded: "lg",
     shadow: "lg",
-    flexDirection: "column"
+    flexDirection: "column",
+    minW: "calc(45vw - 2rem - 40px)"
   }, React.createElement(react_1.Heading, {
     as: "h1",
     size: "xl"
@@ -117617,7 +118859,9 @@ exports.Observer = function (_a) {
   }, getTasks().filter(function (task) {
     return task.isAid;
   }).map(function (task, index) {
-    return React.createElement(react_1.AccordionItem, null, React.createElement("h2", null, React.createElement(react_1.AccordionButton, null, React.createElement(react_1.Box, {
+    return React.createElement(react_1.AccordionItem, {
+      key: task.id
+    }, React.createElement("h2", null, React.createElement(react_1.AccordionButton, null, React.createElement(react_1.Box, {
       flex: "1",
       textAlign: "left"
     }, "Hilfestellung " + (index + 1)), React.createElement(react_1.AccordionIcon, null))), React.createElement(react_1.AccordionPanel, {
@@ -117639,7 +118883,7 @@ exports.Observer = function (_a) {
     });
   })));
 };
-},{"@chakra-ui/react":"node_modules/@chakra-ui/react/dist/chakra-ui-react.esm.js","react":"../node_modules/react/index.js","../../../.":"../dist/react-geogebra-zustand.esm.js","../store":"src/store/index.tsx","./ObserverItem":"src/components/ObserverItem.tsx"}],"node_modules/@babel/runtime/helpers/esm/assertThisInitialized.js":[function(require,module,exports) {
+},{"@chakra-ui/react":"node_modules/@chakra-ui/react/dist/chakra-ui-react.esm.js","react":"../node_modules/react/index.js","../../../.":"../dist/index.js","../store":"src/store/index.tsx","./ObserverItem":"src/components/ObserverItem.tsx"}],"node_modules/@babel/runtime/helpers/esm/assertThisInitialized.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -118303,7 +119547,7 @@ exports.ReactJson = function (_a) {
   });
 
   return React.createElement(react_1.Flex, {
-    width: "400px",
+    width: "calc(50vw - 2rem - 20px)",
     height: "400px",
     overflowY: "auto",
     flexDirection: "column",
@@ -118320,7 +119564,7 @@ exports.ReactJson = function (_a) {
     collapsed: 2
   }));
 };
-},{"react":"../node_modules/react/index.js","@loadable/component":"node_modules/@loadable/component/dist/loadable.esm.js","../../../.":"../dist/react-geogebra-zustand.esm.js","@chakra-ui/react":"node_modules/@chakra-ui/react/dist/chakra-ui-react.esm.js","react-json-view":"node_modules/react-json-view/dist/main.js"}],"src/components/Log.tsx":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","@loadable/component":"node_modules/@loadable/component/dist/loadable.esm.js","../../../.":"../dist/index.js","@chakra-ui/react":"node_modules/@chakra-ui/react/dist/chakra-ui-react.esm.js","react-json-view":"node_modules/react-json-view/dist/main.js"}],"src/components/Log.tsx":[function(require,module,exports) {
 "use strict";
 
 var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -118369,14 +119613,14 @@ var react_1 = require("@chakra-ui/react");
 exports.Log = function (_a) {
   var logs = _a.logs;
   return React.createElement(react_1.Flex, {
-    width: "400px",
+    width: "calc(50vw - 2rem - 20px)",
     height: "400px",
     overflowY: "auto",
     flexDirection: "column",
-    p: '1rem',
     shadow: "lg",
     rounded: "lg",
-    bg: "white"
+    bg: "white",
+    p: '1rem'
   }, React.createElement(react_1.Heading, {
     as: "h1",
     size: "lg",
@@ -118386,7 +119630,6 @@ exports.Log = function (_a) {
     flexDirection: "column-reverse"
   }, logs.map(function (log, index, _a) {
     var length = _a.length;
-    if (index + 1 + 10 < length) return null;
     return React.createElement(react_1.Text, {
       key: index
     }, index + 1 + '. ' + log);
@@ -118460,31 +119703,25 @@ var ReactJson_1 = require("./components/ReactJson");
 
 var Log_1 = require("./components/Log");
 
+var DEV = true;
+
 exports.App = function () {
   var _a = React.useState([]),
       logs = _a[0],
       setLogs = _a[1];
 
-  return React.createElement(react_1.ChakraProvider, null, React.createElement(_1.GeoGebraScriptInjector, null), React.createElement(react_1.Flex, {
-    py: '2rem',
-    px: '1rem',
-    flexDirection: "column",
-    bg: "#DEDEDE",
-    maxW: 'calc(100vw)',
-    minHeight: "calc(100vh)"
-  }, React.createElement(react_1.Flex, {
-    flexDirection: ['column', 'column', 'column', 'row'],
-    alignItems: "center",
-    justifyContent: ['flex-start', 'flex-start', 'flex-start', 'space-between'],
-    pb: '1rem'
-  }, React.createElement(_1.GeoGebra, {
+  return React.createElement(react_1.ChakraProvider, null, React.createElement(_1.GeoGebraScriptInjector, null), React.createElement(react_1.Wrap, {
+    spacing: '40px',
+    p: "2rem"
+  }, React.createElement(react_1.WrapItem, null, React.createElement(_1.GeoGebra, {
     id: "app1",
     width: 600,
     height: 400,
-    material_id: "vtcdcune",
+    material_id: "wjgQ3PQB",
     useBrowserForJS: false,
-    showMenuBar: false,
+    showMenuBar: DEV || false,
     showToolBar: false,
+    enableShiftDragZoom: false,
     algebraInputPosition: "none",
     allowStyleBar: false,
     showResetIcon: true,
@@ -118495,11 +119732,11 @@ exports.App = function () {
         return __spreadArrays(old, [log]);
       });
     }
-  }), React.createElement(Log_1.Log, {
+  })), React.createElement(react_1.WrapItem, null, React.createElement(Observer_1.Observer, null)), React.createElement(react_1.WrapItem, null, React.createElement(Log_1.Log, {
     logs: logs
-  }), React.createElement(ReactJson_1.ReactJson, null)), React.createElement(Observer_1.Observer, null)));
+  })), React.createElement(react_1.WrapItem, null, React.createElement(ReactJson_1.ReactJson, null))));
 };
-},{"react":"../node_modules/react/index.js","@chakra-ui/react":"node_modules/@chakra-ui/react/dist/chakra-ui-react.esm.js","../../.":"../dist/react-geogebra-zustand.esm.js","./components/Observer":"src/components/Observer.tsx","./components/ReactJson":"src/components/ReactJson.tsx","./components/Log":"src/components/Log.tsx"}],"index.tsx":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","@chakra-ui/react":"node_modules/@chakra-ui/react/dist/chakra-ui-react.esm.js","../../.":"../dist/index.js","./components/Observer":"src/components/Observer.tsx","./components/ReactJson":"src/components/ReactJson.tsx","./components/Log":"src/components/Log.tsx"}],"index.tsx":[function(require,module,exports) {
 "use strict";
 
 var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -118579,7 +119816,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50394" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61468" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
