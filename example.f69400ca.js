@@ -106970,17 +106970,6 @@ var store = function store(set, get) {
           objectType: 'boolean'
         }
       },
-      task2: {
-        id: 'task2',
-        isDone: false,
-        isAid: true,
-        text: 'Lass dir die Kurve anzeigen.',
-        subset: {
-          label: 'm_{1}',
-          objectType: 'boolean',
-          value: 1
-        }
-      },
       task4: {
         id: 'task4',
         isDone: false,
@@ -106994,6 +106983,17 @@ var store = function store(set, get) {
               val: 'true'
             }
           }
+        }
+      },
+      task2: {
+        id: 'task2',
+        isDone: false,
+        isAid: true,
+        text: 'Lass dir die Kurve anzeigen.',
+        subset: {
+          label: 'm_{1}',
+          objectType: 'boolean',
+          value: 1
         }
       },
       task3: {
@@ -118577,14 +118577,16 @@ exports.ReactJson = function (_a) {
     shadow: "lg",
     rounded: "lg",
     bg: "white"
-  }, React.createElement(react_1.Heading, {
+  }, React.createElement(react_1.Accordion, {
+    allowToggle: true
+  }, React.createElement(react_1.AccordionItem, null, React.createElement(react_1.AccordionButton, null, React.createElement(react_1.Heading, {
     as: "h1",
     size: "lg",
     mb: 2
-  }, "Zustand"), React.createElement(Json, {
+  }, "Zustand"), React.createElement(react_1.AccordionIcon, null)), React.createElement(react_1.AccordionPanel, null, React.createElement(Json, {
     src: src,
     collapsed: 2
-  }));
+  })))));
 };
 },{"react":"../node_modules/react/index.js","@loadable/component":"node_modules/@loadable/component/dist/loadable.esm.js","../../../.":"../dist/react-geogebra-zustand.esm.js","@chakra-ui/react":"node_modules/@chakra-ui/react/dist/chakra-ui-react.esm.js","react-json-view":"node_modules/react-json-view/dist/main.js"}],"src/components/Log.tsx":[function(require,module,exports) {
 "use strict";
@@ -118643,11 +118645,13 @@ exports.Log = function (_a) {
     rounded: "lg",
     bg: "white",
     p: '1rem'
-  }, React.createElement(react_1.Heading, {
+  }, React.createElement(react_1.Accordion, {
+    allowToggle: true
+  }, React.createElement(react_1.AccordionItem, null, React.createElement(react_1.AccordionButton, null, React.createElement(react_1.Heading, {
     as: "h1",
     size: "lg",
     mb: 2
-  }, "Log"), logs.length > 0 && React.createElement(react_1.Stack, {
+  }, "Log"), React.createElement(react_1.AccordionIcon, null)), React.createElement(react_1.AccordionPanel, null, logs.length > 0 && React.createElement(react_1.Stack, {
     spacing: 2,
     flexDirection: "column-reverse"
   }, logs.map(function (log, index, _a) {
@@ -118655,7 +118659,7 @@ exports.Log = function (_a) {
     return React.createElement(react_1.Text, {
       key: index
     }, index + 1 + '. ' + log);
-  })));
+  }))))));
 };
 },{"react":"../node_modules/react/index.js","@chakra-ui/react":"node_modules/@chakra-ui/react/dist/chakra-ui-react.esm.js"}],"src/App.tsx":[function(require,module,exports) {
 "use strict";
@@ -118730,7 +118734,10 @@ exports.App = function () {
       logs = _a[0],
       setLogs = _a[1];
 
-  return React.createElement(react_1.ChakraProvider, null, React.createElement(_1.GeoGebraScriptInjector, null), React.createElement(react_1.Wrap, {
+  return React.createElement(react_1.ChakraProvider, null, React.createElement(_1.GeoGebraScriptInjector, null), React.createElement(react_1.Link, {
+    href: "https://www.geogebra.org/m/wjgQ3PQB",
+    target: '_blank'
+  }, "https://www.geogebra.org/m/wjgQ3PQB"), React.createElement(react_1.Wrap, {
     spacing: '20px',
     p: "2rem"
   }, React.createElement(react_1.WrapItem, null, React.createElement(_1.GeoGebra, {
@@ -118836,7 +118843,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62892" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49927" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
