@@ -42,18 +42,6 @@ const store = (set, get) => ({
         objectType: 'boolean',
       },
     },
-    task2: {
-      id: 'task2',
-      isDone: false,
-      isAid: true,
-      text: 'Lass dir die Kurve anzeigen.',
-      subset: {
-        label: 'm_{1}',
-        objectType: 'boolean',
-        value: 1,
-      },
-    },
-
     task4: {
       id: 'task4',
       isDone: false,
@@ -63,6 +51,17 @@ const store = (set, get) => ({
         label: 'F',
         objectType: 'point',
         xml: { trace: { val: 'true' } },
+      },
+    },
+    task2: {
+      id: 'task2',
+      isDone: false,
+      isAid: true,
+      text: 'Lass dir die Kurve anzeigen.',
+      subset: {
+        label: 'm_{1}',
+        objectType: 'boolean',
+        value: 1,
       },
     },
     task3: {

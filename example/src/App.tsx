@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChakraProvider, Wrap, WrapItem } from '@chakra-ui/react';
+import { ChakraProvider, Link, Wrap, WrapItem } from '@chakra-ui/react';
 import { GeoGebraScriptInjector, GeoGebra } from '../../.';
 import { Observer } from './components/Observer';
 import { ReactJson } from './components/ReactJson';
@@ -10,6 +10,9 @@ export const App = () => {
   return (
     <ChakraProvider>
       <GeoGebraScriptInjector />
+      <Link href="https://www.geogebra.org/m/wjgQ3PQB" target={'_blank'}>
+        https://www.geogebra.org/m/wjgQ3PQB
+      </Link>
       <Wrap spacing={'20px'} p="2rem">
         <WrapItem>
           <GeoGebra
